@@ -1,0 +1,553 @@
+/* 主程式：畫面流程與遊戲邏輯 */
+(() => {
+  const $ = id => document.getElementById(id);
+
+  const SOLO_QUESTIONS = 10;
+  const VS_PER_PLAYER = 5;
+
+  const AVATARS = ['🦁','🐰','🐯','🐼','🐸','🐵','🦊','🐻','🐨','🐷','🦄','🐙','🦖','🐳','🚀','🌟','🍓','🎈','⚽','🎀','🤖','👑','🦋','🐥'];
+  const COLORS = ['#e63946','#1d6fd6','#2a9d3f','#f4802c','#8144c4','#f27fb2','#00a8a8','#8b5a2b','#5b6ee1','#d4a017'];
+  const PRAISES = ['答對了，你好棒！','太厲害了！','答對囉，繼續加油！','哇，好聰明！'];
+
+  let session = null;        // 進行中的一輪
+  let versusSelection = [];  // 對戰模式選到的玩家 id（依點選順序）
+  let editingId = null;      // 編輯中的玩家 id（null = 新增）
+  let editState = null;
+
+  /* ===== 畫面切換 ===== */
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    $(id).classList.add('active');
+  }
+
+  function setTheme(el, color) {
+    el.style.setProperty('--pc', color);
+    el.style.setProperty('--pc-soft', color + '18');
+  }
+
+  /* ===== 首頁 ===== */
+  function profileCard(p, { selectable = false } = {}) {
+    const card = document.createElement('button');
+    card.className = 'profile-card' + (selectable ? ' selectable' : '');
+    card.style.setProperty('--pc', p.color);
+    const best = Store.bestScore(p.id);
+    card.innerHTML = `
+      <span class="sel-mark">✓</span>
+      <div class="profile-avatar">${p.avatar}</div>
+      <div class="profile-name">${escapeHtml(p.name)}</div>
+      <div class="profile-best">${best === null ? '還沒玩過' : `最高分 ⭐ ${best}`}</div>`;
+    return card;
+  }
+
+  function renderHome() {
+    const grid = $('profile-grid');
+    grid.innerHTML = '';
+    for (const p of Store.getProfiles()) {
+      const card = profileCard(p);
+      card.addEventListener('click', () => { Sfx.unlock(); Sfx.tap(); startSolo(p.id); });
+
+      const edit = document.createElement('button');
+      edit.className = 'profile-edit';
+      edit.textContent = '✏️';
+      edit.setAttribute('aria-label', '編輯玩家');
+      edit.addEventListener('click', e => { e.stopPropagation(); openEdit(p.id); });
+      card.appendChild(edit);
+      grid.appendChild(card);
+    }
+    const add = document.createElement('button');
+    add.className = 'profile-card add-card';
+    add.innerHTML = '<div class="add-plus">＋</div><div>新增玩家</div>';
+    add.addEventListener('click', () => openEdit(null));
+    grid.appendChild(add);
+  }
+
+  function goHome() {
+    Speech.stop();
+    session = null;
+    renderHome();
+    showScreen('screen-home');
+  }
+
+  /* ===== 編輯玩家 ===== */
+  function openEdit(id) {
+    editingId = id;
+    const p = id ? Store.getProfile(id) : null;
+    const usedAvatars = Store.getProfiles().map(x => x.avatar);
+    const usedColors = Store.getProfiles().map(x => x.color);
+    editState = p ? {
+      name: p.name, avatar: p.avatar, color: p.color,
+      difficulty: p.difficulty, types: p.types.slice(),
+    } : {
+      name: '',
+      avatar: AVATARS.find(a => !usedAvatars.includes(a)) || AVATARS[0],
+      color: COLORS.find(c => !usedColors.includes(c)) || COLORS[0],
+      difficulty: 1,
+      types: Store.ALL_TYPES.slice(),
+    };
+    $('edit-title').textContent = id ? '編輯玩家' : '新增玩家';
+    $('edit-name').value = editState.name;
+    $('btn-edit-delete').classList.toggle('hidden', !id || Store.getProfiles().length <= 1);
+    renderEditPickers();
+    $('modal-edit').classList.remove('hidden');
+  }
+
+  function renderEditPickers() {
+    const av = $('edit-avatars');
+    av.innerHTML = '';
+    for (const a of AVATARS) {
+      const b = document.createElement('button');
+      b.className = 'picker-item' + (a === editState.avatar ? ' selected' : '');
+      b.textContent = a;
+      b.addEventListener('click', () => { editState.avatar = a; renderEditPickers(); });
+      av.appendChild(b);
+    }
+    const co = $('edit-colors');
+    co.innerHTML = '';
+    for (const c of COLORS) {
+      const b = document.createElement('button');
+      b.className = 'picker-item' + (c === editState.color ? ' selected' : '');
+      b.style.background = c;
+      b.addEventListener('click', () => { editState.color = c; renderEditPickers(); });
+      co.appendChild(b);
+    }
+    const df = $('edit-diff');
+    df.innerHTML = '';
+    for (const [level, info] of Object.entries(Gen.DIFF)) {
+      const b = document.createElement('button');
+      b.className = 'seg-btn' + (Number(level) === editState.difficulty ? ' selected' : '');
+      b.textContent = info.label;
+      b.addEventListener('click', () => { editState.difficulty = Number(level); renderEditPickers(); });
+      df.appendChild(b);
+    }
+    const tg = $('edit-types');
+    tg.innerHTML = '';
+    for (const t of Store.ALL_TYPES) {
+      const on = editState.types.includes(t);
+      const b = document.createElement('button');
+      b.className = 'type-btn' + (on ? ' selected' : '');
+      b.textContent = (on ? '✅ ' : '⬜ ') + Gen.TYPE_INFO[t].label;
+      b.addEventListener('click', () => {
+        if (on) {
+          if (editState.types.length > 1) editState.types = editState.types.filter(x => x !== t);
+        } else {
+          editState.types.push(t);
+        }
+        renderEditPickers();
+      });
+      tg.appendChild(b);
+    }
+  }
+
+  function saveEdit() {
+    const name = $('edit-name').value.trim() || '小寶貝';
+    const profile = {
+      id: editingId || ('p' + Date.now()),
+      name,
+      avatar: editState.avatar,
+      color: editState.color,
+      difficulty: editState.difficulty,
+      types: editState.types.slice(),
+    };
+    Store.upsertProfile(profile);
+    $('modal-edit').classList.add('hidden');
+    renderHome();
+  }
+
+  /* ===== 對戰設定 ===== */
+  function openVersusSetup() {
+    versusSelection = [];
+    const grid = $('versus-grid');
+    grid.innerHTML = '';
+    for (const p of Store.getProfiles()) {
+      const card = profileCard(p, { selectable: true });
+      card.addEventListener('click', () => {
+        Sfx.unlock(); Sfx.tap();
+        if (versusSelection.includes(p.id)) {
+          versusSelection = versusSelection.filter(x => x !== p.id);
+          card.classList.remove('selected');
+        } else {
+          versusSelection.push(p.id);
+          card.classList.add('selected');
+        }
+        $('btn-versus-start').disabled = versusSelection.length < 2;
+      });
+      grid.appendChild(card);
+    }
+    $('btn-versus-start').disabled = true;
+    showScreen('screen-versus-setup');
+  }
+
+  /* ===== 建立一輪 ===== */
+  function startSolo(profileId) {
+    const p = Store.getProfile(profileId);
+    if (!p) return;
+    const questions = Gen.buildRound(p, SOLO_QUESTIONS);
+    session = {
+      mode: 'solo',
+      players: [p],
+      queue: questions.map(q => ({ playerIdx: 0, question: q })),
+      pos: 0,
+      scores: [0],
+      corrects: [0],
+    };
+    showScreen('screen-quiz');
+    renderQuestion();
+  }
+
+  function startVersus() {
+    const players = versusSelection.map(id => Store.getProfile(id)).filter(Boolean);
+    if (players.length < 2) return;
+    const used = new Set(); // 同一場不出重複題
+    const perPlayer = players.map(p => Gen.buildRound(p, VS_PER_PLAYER, used));
+    const queue = [];
+    for (let round = 0; round < VS_PER_PLAYER; round++) {
+      players.forEach((p, i) => {
+        if (perPlayer[i][round]) queue.push({ playerIdx: i, question: perPlayer[i][round] });
+      });
+    }
+    session = {
+      mode: 'versus',
+      players,
+      queue,
+      pos: 0,
+      scores: players.map(() => 0),
+      corrects: players.map(() => 0),
+    };
+    showScreen('screen-quiz');
+    showTurnOverlay();
+  }
+
+  /* ===== 換人過場（對戰） ===== */
+  function showTurnOverlay() {
+    const { playerIdx } = session.queue[session.pos];
+    const p = session.players[playerIdx];
+    const overlay = $('overlay-turn');
+    setTheme(overlay, p.color);
+    $('turn-avatar').textContent = p.avatar;
+    $('turn-text').textContent = `換 ${p.name} 囉！`;
+    overlay.classList.remove('hidden');
+    Sfx.turn();
+    Speech.speak(`換${p.name}囉！`);
+  }
+
+  /* ===== 出題 ===== */
+  function renderQuestion() {
+    const { playerIdx, question } = session.queue[session.pos];
+    const p = session.players[playerIdx];
+    const screen = $('screen-quiz');
+    setTheme(screen, p.color);
+
+    // 頂部資訊
+    $('quiz-player-chip').querySelector('.chip-avatar').textContent = p.avatar;
+    $('quiz-player-chip').querySelector('.chip-name').textContent = p.name;
+    $('quiz-progress').textContent = `第 ${session.pos + 1} / ${session.queue.length} 題`;
+
+    const scoresEl = $('quiz-scores');
+    scoresEl.innerHTML = '';
+    session.players.forEach((pl, i) => {
+      const chip = document.createElement('span');
+      chip.className = 'score-chip' + (i === playerIdx ? ' current' : '');
+      chip.textContent = session.mode === 'versus'
+        ? `${pl.avatar} ${session.scores[i]}`
+        : `⭐ ${session.scores[i]}`;
+      scoresEl.appendChild(chip);
+    });
+
+    // 圖像區
+    const imgEl = $('q-image');
+    imgEl.innerHTML = '';
+    const img = question.image;
+    if (img) {
+      if (img.kind === 'emoji') {
+        imgEl.textContent = img.value;
+      } else if (img.kind === 'grid') {
+        for (let i = 0; i < img.count; i++) {
+          const s = document.createElement('span');
+          s.textContent = img.emoji;
+          imgEl.appendChild(s);
+        }
+      } else if (img.kind === 'math') {
+        const left = document.createElement('span');
+        left.textContent = img.emoji.repeat(img.a);
+        const op = document.createElement('span');
+        op.className = 'math-op';
+        op.textContent = img.op;
+        const right = document.createElement('span');
+        right.textContent = img.emoji.repeat(img.b);
+        imgEl.append(left, op, right);
+      }
+    }
+
+    // 題目文字
+    $('q-prompt').textContent = question.prompt;
+
+    // 選項
+    const optsEl = $('q-options');
+    optsEl.innerHTML = '';
+    optsEl.classList.toggle('text-mode', question.options.some(o => o.kind === 'text'));
+    question.options.forEach(opt => {
+      const b = document.createElement('button');
+      b.className = 'opt-btn';
+      if (opt.kind === 'emoji') b.innerHTML = `<span class="opt-emoji">${opt.emoji}</span>`;
+      else if (opt.kind === 'number') b.innerHTML = `<span class="opt-num">${opt.label}</span>`;
+      else if (opt.kind === 'color') b.innerHTML = `<span class="opt-swatch" style="background:${opt.hex}"></span>`;
+      else if (opt.kind === 'shape') b.innerHTML = opt.svg;
+      else b.innerHTML = `<span class="opt-emoji">${opt.emoji}</span><span>${escapeHtml(opt.label)}</span>`;
+      b.addEventListener('click', () => answer(opt, b));
+      optsEl.appendChild(b);
+    });
+
+    $('feedback').classList.add('hidden');
+    Speech.speak(question.speech.text, question.speech.lang);
+  }
+
+  /* ===== 作答 ===== */
+  function answer(opt, btn) {
+    const { playerIdx, question } = session.queue[session.pos];
+    const buttons = [...$('q-options').querySelectorAll('.opt-btn')];
+    buttons.forEach(b => b.classList.add('disabled'));
+
+    let fbEmoji, fbText, speechText;
+    if (opt.correct) {
+      session.scores[playerIdx] += 10;
+      session.corrects[playerIdx] += 1;
+      btn.classList.add('correct');
+      buttons.filter(b => b !== btn).forEach(b => b.classList.add('dimmed'));
+      Sfx.correct();
+      fbEmoji = '🎉';
+      fbText = speechText = PRAISES[Math.floor(Math.random() * PRAISES.length)];
+      $('feedback-explain').textContent = '';
+    } else {
+      btn.classList.add('wrong');
+      const correctIdx = question.options.findIndex(o => o.correct);
+      buttons[correctIdx].classList.add('correct');
+      buttons.forEach((b, i) => {
+        if (b !== btn && i !== correctIdx) b.classList.add('dimmed');
+      });
+      Sfx.wrong();
+      fbEmoji = '💪';
+      fbText = `正確答案是「${question.correctLabel}」`;
+      speechText = `答錯了喔，正確答案是，${question.correctLabel}。${question.explanation || ''}`;
+      $('feedback-explain').textContent = question.explanation || '';
+    }
+
+    $('feedback-emoji').textContent = fbEmoji;
+    $('feedback-text').textContent = fbText;
+    $('btn-next').textContent = session.pos + 1 >= session.queue.length ? '看成績 🏁' : '下一題 ▶';
+    $('feedback').classList.remove('hidden');
+    Speech.speak(speechText, 'zh-TW');
+  }
+
+  function nextQuestion() {
+    Speech.stop();
+    session.pos += 1;
+    if (session.pos >= session.queue.length) {
+      finishRound();
+    } else if (session.mode === 'versus') {
+      showTurnOverlay();
+    } else {
+      renderQuestion();
+    }
+  }
+
+  /* ===== 結果 ===== */
+  function finishRound() {
+    const box = $('results-box');
+    box.innerHTML = '';
+    const today = new Date().toISOString().slice(0, 10);
+
+    if (session.mode === 'solo') {
+      const p = session.players[0];
+      const score = session.scores[0];
+      const correct = session.corrects[0];
+      const total = session.queue.length;
+      const prevBest = Store.bestScore(p.id);
+      Store.addScore(p.id, { score, correct, total, date: today });
+      const isRecord = prevBest === null ? score > 0 : score > prevBest;
+      const stars = correct >= 9 ? '⭐⭐⭐' : correct >= 6 ? '⭐⭐☆' : correct >= 3 ? '⭐☆☆' : '☆☆☆';
+
+      box.innerHTML = `
+        <div class="turn-avatar" style="background:${p.color}33; margin-bottom:8px;">${p.avatar}</div>
+        <div class="results-title">${escapeHtml(p.name)} 完成了！</div>
+        <div class="results-stars">${stars}</div>
+        <div class="results-score">${score} 分</div>
+        <div class="results-sub">答對 ${correct} / ${total} 題</div>
+        ${isRecord ? '<div class="new-record">🎊 新紀錄！</div>' : ''}`;
+
+      Sfx.fanfare();
+      if (correct >= 6) confetti();
+      Speech.speak(`${p.name}，你答對${correct}題，得到${score}分${isRecord ? '，是新紀錄喔' : ''}！`);
+    } else {
+      const ranked = session.players
+        .map((p, i) => ({ p, score: session.scores[i], correct: session.corrects[i] }))
+        .sort((a, b) => b.score - a.score);
+      const topScore = ranked[0].score;
+      const winners = ranked.filter(r => r.score === topScore);
+      const isTie = winners.length > 1;
+
+      box.innerHTML = `<div class="results-title">${isTie ? '🤝 平手！大家都好棒！' : `🏆 ${escapeHtml(winners[0].p.name)} 獲勝！`}</div>`;
+      for (const r of ranked) {
+        const row = document.createElement('div');
+        row.className = 'vs-result-row';
+        row.style.setProperty('--pc', r.p.color);
+        row.innerHTML = `
+          <span class="vs-crown">${!isTie && r.score === topScore ? '👑' : ''}</span>
+          <span class="vs-avatar">${r.p.avatar}</span>
+          <span>${escapeHtml(r.p.name)}</span>
+          <span class="vs-score">${r.score} 分</span>`;
+        box.appendChild(row);
+      }
+
+      Store.addBattle({
+        date: today,
+        players: session.players.map((p, i) => ({ id: p.id, name: p.name, avatar: p.avatar, score: session.scores[i] })),
+        winner: isTie ? null : winners[0].p.name,
+      });
+
+      Sfx.fanfare();
+      confetti();
+      Speech.speak(isTie ? '平手！大家都好棒！' : `恭喜${winners[0].p.name}獲勝！`);
+    }
+
+    showScreen('screen-results');
+  }
+
+  function playAgain() {
+    if (!session) { goHome(); return; }
+    if (session.mode === 'solo') startSolo(session.players[0].id);
+    else { versusSelection = session.players.map(p => p.id); startVersus(); }
+  }
+
+  function confetti() {
+    const pieces = ['🎉','🎊','⭐','🎈','✨'];
+    for (let i = 0; i < 24; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti';
+      el.textContent = pieces[Math.floor(Math.random() * pieces.length)];
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.animationDuration = 1.8 + Math.random() * 1.6 + 's';
+      el.style.animationDelay = Math.random() * 0.8 + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4500);
+    }
+  }
+
+  /* ===== 排行榜 ===== */
+  function renderBoard() {
+    const el = $('board-content');
+    el.innerHTML = '';
+
+    for (const p of Store.getProfiles()) {
+      const sec = document.createElement('section');
+      sec.className = 'board-section';
+      sec.style.setProperty('--pc', p.color);
+      const scores = Store.getScores(p.id).slice(0, 10);
+      let rows = scores.map((s, i) => `
+        <div class="board-row">
+          <span class="board-rank">${['🥇','🥈','🥉'][i] || (i + 1) + '.'}</span>
+          <span>答對 ${s.correct} / ${s.total} 題</span>
+          <span class="board-date">${formatDate(s.date)}</span>
+          <span class="board-score">${s.score} 分</span>
+        </div>`).join('');
+      if (!rows) rows = '<div class="board-empty">還沒有紀錄，快去玩一輪吧！</div>';
+      sec.innerHTML = `<h2><span>${p.avatar}</span>${escapeHtml(p.name)} 的最佳成績</h2>${rows}`;
+      el.appendChild(sec);
+    }
+
+    const battles = Store.getBattles().slice(0, 10);
+    const sec = document.createElement('section');
+    sec.className = 'board-section';
+    let rows = battles.map(b => {
+      const parts = b.players.map(pl => `${pl.avatar} ${escapeHtml(pl.name)} ${pl.score}分`).join('　vs　');
+      return `
+        <div class="board-row">
+          <span>${parts}</span>
+          <span class="board-date">${formatDate(b.date)}</span>
+          <span class="board-score">${b.winner ? '👑 ' + escapeHtml(b.winner) : '🤝 平手'}</span>
+        </div>`;
+    }).join('');
+    if (!rows) rows = '<div class="board-empty">還沒有對戰紀錄</div>';
+    sec.innerHTML = `<h2>⚔️ 對戰紀錄</h2>${rows}`;
+    el.appendChild(sec);
+
+    showScreen('screen-board');
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const [, m, d] = iso.split('-');
+    return `${Number(m)}/${Number(d)}`;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+  }
+
+  /* ===== 事件綁定 ===== */
+  function bindEvents() {
+    $('btn-versus').addEventListener('click', () => { Sfx.unlock(); openVersusSetup(); });
+    $('btn-board').addEventListener('click', renderBoard);
+    $('btn-versus-start').addEventListener('click', () => { Sfx.tap(); startVersus(); });
+    document.querySelectorAll('.btn-go-home').forEach(b => b.addEventListener('click', goHome));
+    document.querySelectorAll('.btn-go-board').forEach(b => b.addEventListener('click', renderBoard));
+
+    $('btn-turn-go').addEventListener('click', () => {
+      $('overlay-turn').classList.add('hidden');
+      Sfx.tap();
+      renderQuestion();
+    });
+
+    $('btn-replay').addEventListener('click', () => {
+      if (!session) return;
+      const q = session.queue[session.pos].question;
+      Speech.speak(q.speech.text, q.speech.lang);
+    });
+
+    $('btn-next').addEventListener('click', nextQuestion);
+
+    $('btn-quit').addEventListener('click', () => $('overlay-quit').classList.remove('hidden'));
+    $('btn-quit-stay').addEventListener('click', () => $('overlay-quit').classList.add('hidden'));
+    $('btn-quit-leave').addEventListener('click', () => {
+      $('overlay-quit').classList.add('hidden');
+      goHome();
+    });
+
+    $('btn-again').addEventListener('click', playAgain);
+
+    $('btn-edit-save').addEventListener('click', saveEdit);
+    $('btn-edit-cancel').addEventListener('click', () => $('modal-edit').classList.add('hidden'));
+    $('btn-edit-delete').addEventListener('click', () => {
+      const p = Store.getProfile(editingId);
+      if (p && window.confirm(`確定要刪除「${p.name}」嗎？成績也會一起刪除。`)) {
+        Store.deleteProfile(editingId);
+        $('modal-edit').classList.add('hidden');
+        renderHome();
+      }
+    });
+  }
+
+  /* ===== 啟動 ===== */
+  async function init() {
+    bindEvents();
+    try {
+      const [vocab, situations] = await Promise.all([
+        fetch('data/vocab.json').then(r => r.json()),
+        fetch('data/situations.json').then(r => r.json()),
+      ]);
+      Gen.init(vocab, situations);
+    } catch (e) {
+      $('screen-loading').querySelector('.loading-box').innerHTML =
+        '<div class="loading-emoji">😢</div><div>題庫載入失敗。<br>請用網頁伺服器開啟（不能直接開檔案），<br>或檢查網路後重新整理。</div>';
+      return;
+    }
+    goHome();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => { /* 離線快取失敗不影響遊戲 */ });
+    }
+  }
+
+  init();
+})();

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>小小問答樂園</title>
+  <meta name="theme-color" content="#ffb703">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="問答樂園">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- 載入中 -->
+  <div id="screen-loading" class="screen active">
+    <div class="loading-box">
+      <div class="loading-emoji">🎈</div>
+      <div>載入中…</div>
+    </div>
+  </div>
+
+  <!-- 首頁：選擇玩家 -->
+  <div id="screen-home" class="screen">
+    <h1 class="app-title">🎈 小小問答樂園</h1>
+    <p class="home-hint">點自己的頭像開始玩！</p>
+    <div id="profile-grid" class="profile-grid"></div>
+    <div class="home-actions">
+      <button id="btn-versus" class="big-btn versus-btn">⚔️ 一起玩（輪流答題）</button>
+      <button id="btn-board" class="big-btn board-btn">🏆 排行榜</button>
+    </div>
+  </div>
+
+  <!-- 對戰設定：選玩家 -->
+  <div id="screen-versus-setup" class="screen">
+    <h1 class="app-title">⚔️ 誰要一起玩？</h1>
+    <p class="home-hint">點頭像選擇玩家（至少 2 位），一人一題輪流答！</p>
+    <div id="versus-grid" class="profile-grid"></div>
+    <div class="home-actions">
+      <button id="btn-versus-start" class="big-btn versus-btn" disabled>開始對戰 ▶</button>
+      <button class="big-btn ghost-btn btn-go-home">↩ 回首頁</button>
+    </div>
+  </div>
+
+  <!-- 答題畫面 -->
+  <div id="screen-quiz" class="screen">
+    <header class="quiz-header">
+      <button id="btn-quit" class="icon-btn" aria-label="離開">🏠</button>
+      <div id="quiz-player-chip" class="player-chip">
+        <span class="chip-avatar"></span><span class="chip-name"></span>
+      </div>
+      <div id="quiz-progress" class="quiz-progress"></div>
+      <div id="quiz-scores" class="quiz-scores"></div>
+    </header>
+
+    <main class="quiz-main">
+      <div id="q-image" class="q-image"></div>
+      <div class="q-prompt-row">
+        <div id="q-prompt" class="q-prompt"></div>
+        <button id="btn-replay" class="icon-btn replay-btn" aria-label="再聽一次">🔊</button>
+      </div>
+      <div id="q-options" class="q-options"></div>
+    </main>
+
+    <div id="feedback" class="feedback hidden">
+      <div id="feedback-emoji" class="feedback-emoji"></div>
+      <div id="feedback-text" class="feedback-text"></div>
+      <div id="feedback-explain" class="feedback-explain"></div>
+      <button id="btn-next" class="big-btn next-btn">下一題 ▶</button>
+    </div>
+  </div>
+
+  <!-- 結果畫面 -->
+  <div id="screen-results" class="screen">
+    <div id="results-box" class="results-box"></div>
+    <div class="home-actions">
+      <button id="btn-again" class="big-btn versus-btn">🔄 再玩一次</button>
+      <button class="big-btn board-btn btn-go-board">🏆 排行榜</button>
+      <button class="big-btn ghost-btn btn-go-home">↩ 回首頁</button>
+    </div>
+  </div>
+
+  <!-- 排行榜 -->
+  <div id="screen-board" class="screen">
+    <h1 class="app-title">🏆 排行榜</h1>
+    <div id="board-content" class="board-content"></div>
+    <div class="home-actions">
+      <button class="big-btn ghost-btn btn-go-home">↩ 回首頁</button>
+    </div>
+  </div>
+
+  <!-- 換人過場 -->
+  <div id="overlay-turn" class="overlay hidden">
+    <div class="turn-card">
+      <div id="turn-avatar" class="turn-avatar"></div>
+      <div id="turn-text" class="turn-text"></div>
+      <button id="btn-turn-go" class="big-btn turn-go-btn">開始作答 ▶</button>
+    </div>
+  </div>
+
+  <!-- 離開確認 -->
+  <div id="overlay-quit" class="overlay hidden">
+    <div class="dialog">
+      <div class="dialog-title">要離開遊戲嗎？</div>
+      <div class="dialog-sub">這一輪的分數不會被記錄喔</div>
+      <div class="dialog-actions">
+        <button id="btn-quit-stay" class="big-btn versus-btn">繼續玩</button>
+        <button id="btn-quit-leave" class="big-btn ghost-btn">離開</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 編輯玩家 -->
+  <div id="modal-edit" class="overlay hidden">
+    <div class="dialog edit-dialog">
+      <div class="dialog-title" id="edit-title">編輯玩家</div>
+
+      <label class="edit-label">名字</label>
+      <input id="edit-name" class="edit-input" type="text" maxlength="8">
+
+      <label class="edit-label">頭像</label>
+      <div id="edit-avatars" class="picker-grid"></div>
+
+      <label class="edit-label">代表色</label>
+      <div id="edit-colors" class="picker-grid"></div>
+
+      <label class="edit-label">難度</label>
+      <div id="edit-diff" class="seg-row"></div>
+
+      <label class="edit-label">題型（至少勾一種）</label>
+      <div id="edit-types" class="type-grid"></div>
+
+      <div class="dialog-actions">
+        <button id="btn-edit-save" class="big-btn versus-btn">儲存</button>
+        <button id="btn-edit-cancel" class="big-btn ghost-btn">取消</button>
+      </div>
+      <button id="btn-edit-delete" class="delete-link">刪除這位玩家</button>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/generators.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

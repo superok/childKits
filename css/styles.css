@@ -1,0 +1,362 @@
+/* ===== 基本 ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+body {
+  font-family: ui-rounded, "PingFang TC", "Heiti TC", "Microsoft JhengHei", system-ui, sans-serif;
+  background: linear-gradient(160deg, #fff7e0 0%, #ffe9c7 50%, #ffdff0 100%);
+  color: #3a2e2a;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input { font-family: inherit; }
+
+.hidden { display: none !important; }
+
+/* ===== 畫面切換 ===== */
+.screen {
+  display: none;
+  min-height: 100dvh;
+  flex-direction: column;
+  align-items: center;
+  padding: max(16px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+}
+.screen.active { display: flex; }
+
+.loading-box { margin: auto; text-align: center; font-size: 1.4rem; }
+.loading-emoji { font-size: 4rem; animation: bounce 1s infinite; }
+
+.app-title {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  margin: 12px 0 4px;
+  text-shadow: 0 2px 0 #fff;
+}
+.home-hint { font-size: 1.1rem; color: #8a6f56; margin-bottom: 18px; }
+
+/* ===== 首頁玩家卡 ===== */
+.profile-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  justify-content: center;
+  align-items: stretch;
+  max-width: 900px;
+}
+
+.profile-card {
+  position: relative;
+  width: 190px;
+  padding: 20px 14px 16px;
+  border-radius: 28px;
+  background: #fff;
+  box-shadow: 0 6px 0 rgba(0,0,0,.08);
+  text-align: center;
+  transition: transform .1s;
+  border: 5px solid var(--pc, #ccc);
+}
+.profile-card:active { transform: scale(.95); }
+
+.profile-avatar {
+  width: 96px; height: 96px;
+  margin: 0 auto 10px;
+  border-radius: 50%;
+  background: var(--pc, #ccc);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3.2rem;
+}
+.profile-name { font-size: 1.4rem; font-weight: 700; }
+.profile-best { font-size: .95rem; color: #8a6f56; margin-top: 4px; }
+
+.profile-edit {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 1.1rem; padding: 6px; border-radius: 50%;
+  background: #f3ece2;
+}
+
+.profile-card.add-card {
+  border-style: dashed; border-color: #cbb89f; background: #fffdf8;
+  display: flex; flex-direction: column; justify-content: center;
+  color: #a08a6d; font-size: 1.2rem; min-height: 190px;
+}
+.add-plus { font-size: 3rem; }
+
+.sel-mark {
+  position: absolute; top: -14px; left: -14px;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #2a9d3f; color: #fff;
+  font-size: 1.4rem; line-height: 40px;
+  display: none;
+}
+.profile-card.selected { outline: 6px solid #2a9d3f; }
+.profile-card.selected .sel-mark { display: block; }
+
+/* ===== 按鈕 ===== */
+.home-actions {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  justify-content: center; margin-top: 30px;
+}
+
+.big-btn {
+  font-size: 1.3rem; font-weight: 700;
+  padding: 16px 30px; border-radius: 999px;
+  box-shadow: 0 5px 0 rgba(0,0,0,.15);
+  transition: transform .08s;
+  color: #fff;
+}
+.big-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.15); }
+.big-btn:disabled { opacity: .4; }
+
+.versus-btn { background: #ff5a3c; }
+.board-btn { background: #1d6fd6; }
+.ghost-btn { background: #fff; color: #8a6f56; border: 3px solid #d9c7ad; }
+.next-btn { background: #2a9d3f; font-size: 1.5rem; }
+.turn-go-btn { background: #fff; color: #3a2e2a; font-size: 1.6rem; }
+
+.icon-btn {
+  font-size: 1.6rem; width: 56px; height: 56px;
+  border-radius: 18px; background: #fff;
+  box-shadow: 0 3px 0 rgba(0,0,0,.12);
+}
+.icon-btn:active { transform: translateY(2px); }
+
+.delete-link { margin-top: 14px; color: #c0392b; text-decoration: underline; font-size: .95rem; }
+
+/* ===== 答題畫面 ===== */
+#screen-quiz {
+  padding: 0;
+  background: var(--pc-soft, #fff7e0);
+  border: 12px solid var(--pc, #ffb703);
+  border-radius: 0;
+}
+
+.quiz-header {
+  width: 100%;
+  display: flex; align-items: center; gap: 14px;
+  padding: max(10px, env(safe-area-inset-top)) 16px 10px;
+  background: var(--pc, #ffb703);
+  color: #fff;
+}
+
+.player-chip {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.25);
+  padding: 6px 16px 6px 8px; border-radius: 999px;
+  font-size: 1.3rem; font-weight: 800;
+}
+.chip-avatar { font-size: 1.8rem; }
+
+.quiz-progress { font-size: 1.15rem; font-weight: 700; margin-left: auto; }
+
+.quiz-scores { display: flex; gap: 8px; font-size: 1.05rem; font-weight: 700; }
+.score-chip {
+  background: rgba(255,255,255,.25);
+  border-radius: 999px; padding: 5px 12px;
+  display: flex; align-items: center; gap: 6px;
+}
+.score-chip.current { background: #fff; color: #3a2e2a; }
+
+.quiz-main {
+  flex: 1; width: 100%; max-width: 900px;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 12px 20px 180px; /* 底部留空間給固定的回饋列 */
+}
+
+.q-image {
+  min-height: 40px;
+  display: flex; flex-wrap: wrap; gap: 6px;
+  align-items: center; justify-content: center;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  margin: 8px 0;
+  max-width: 700px;
+}
+.q-image .math-op { font-size: .7em; color: #8a6f56; margin: 0 10px; }
+
+.q-prompt-row { display: flex; align-items: center; gap: 14px; margin: 6px 0 18px; }
+.q-prompt {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  font-weight: 800; text-align: center;
+}
+.replay-btn { flex-shrink: 0; }
+
+.q-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  width: 100%; max-width: 820px;
+}
+.q-options.text-mode { grid-template-columns: 1fr; max-width: 620px; }
+
+.opt-btn {
+  background: #fff;
+  border-radius: 24px;
+  border: 4px solid #e8dcc8;
+  box-shadow: 0 5px 0 rgba(0,0,0,.08);
+  min-height: 110px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 6px;
+  padding: 14px;
+  font-size: 1.35rem; font-weight: 700;
+  transition: transform .08s;
+}
+.opt-btn:active { transform: scale(.96); }
+.opt-btn .opt-emoji { font-size: 3.4rem; line-height: 1; }
+.opt-btn .opt-num { font-size: 2.6rem; }
+.opt-btn .opt-swatch {
+  width: 84px; height: 84px; border-radius: 20px;
+  border: 3px solid rgba(0,0,0,.15);
+}
+.opt-btn svg { width: 84px; height: 84px; }
+
+.q-options.text-mode .opt-btn {
+  flex-direction: row; justify-content: flex-start;
+  min-height: 84px; font-size: 1.4rem; text-align: left;
+}
+.q-options.text-mode .opt-btn .opt-emoji { font-size: 2.2rem; }
+
+.opt-btn.correct { border-color: #2a9d3f; background: #e2f7e5; animation: pop .4s; }
+.opt-btn.wrong { border-color: #e63946; background: #ffe3e5; animation: shake .4s; }
+.opt-btn.disabled { pointer-events: none; opacity: .75; }
+.opt-btn.dimmed { opacity: .35; }
+
+/* ===== 回饋區 ===== */
+.feedback {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  background: #fff;
+  border-top: 6px solid var(--pc, #ffb703);
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 8px 18px;
+  animation: slideup .25s;
+}
+.feedback-emoji { font-size: 3rem; }
+.feedback-text { font-size: 1.5rem; font-weight: 800; }
+.feedback-explain { width: 100%; text-align: center; font-size: 1.15rem; color: #8a6f56; }
+
+/* ===== 過場與對話框 ===== */
+.overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(58,46,42,.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+
+#overlay-turn { background: var(--pc, #ffb703); animation: fadein .3s; }
+.turn-card { text-align: center; color: #fff; }
+.turn-avatar {
+  width: 170px; height: 170px; margin: 0 auto 20px;
+  border-radius: 50%; background: rgba(255,255,255,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 6rem;
+  animation: bounce 1.2s infinite;
+}
+.turn-text { font-size: 2.6rem; font-weight: 900; margin-bottom: 30px; text-shadow: 0 3px 0 rgba(0,0,0,.15); }
+
+.dialog {
+  background: #fff; border-radius: 28px;
+  padding: 28px 26px; max-width: 460px; width: 100%;
+  text-align: center;
+  max-height: 90dvh; overflow-y: auto;
+}
+.dialog-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
+.dialog-sub { color: #8a6f56; margin-bottom: 18px; }
+.dialog-actions { display: flex; gap: 14px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+
+/* ===== 編輯玩家 ===== */
+.edit-dialog { text-align: left; }
+.edit-dialog .dialog-title { text-align: center; }
+.edit-label { display: block; font-weight: 700; margin: 14px 0 6px; color: #8a6f56; }
+.edit-input {
+  width: 100%; font-size: 1.3rem; padding: 10px 14px;
+  border: 3px solid #e8dcc8; border-radius: 14px;
+}
+.picker-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.picker-item {
+  width: 52px; height: 52px; border-radius: 14px;
+  border: 3px solid #e8dcc8; background: #fff;
+  font-size: 1.7rem;
+  display: flex; align-items: center; justify-content: center;
+}
+.picker-item.selected { border-color: #2a9d3f; outline: 3px solid #b8e6bf; }
+
+.seg-row { display: flex; gap: 8px; }
+.seg-btn {
+  flex: 1; padding: 12px 6px; border-radius: 14px;
+  border: 3px solid #e8dcc8; background: #fff;
+  font-size: 1.05rem; font-weight: 700;
+}
+.seg-btn.selected { border-color: #1d6fd6; background: #e3efff; }
+
+.type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.type-btn {
+  padding: 12px 8px; border-radius: 14px;
+  border: 3px solid #e8dcc8; background: #fff;
+  font-size: 1rem; font-weight: 700; text-align: left;
+}
+.type-btn.selected { border-color: #2a9d3f; background: #e2f7e5; }
+
+/* ===== 結果畫面 ===== */
+.results-box { text-align: center; margin: auto 0; }
+.results-stars { font-size: 3.6rem; letter-spacing: 8px; margin: 10px 0; }
+.results-title { font-size: 2.2rem; font-weight: 900; }
+.results-score { font-size: 4rem; font-weight: 900; color: #ff5a3c; margin: 6px 0; }
+.results-sub { font-size: 1.3rem; color: #8a6f56; }
+.new-record { display: inline-block; background: #ff5a3c; color: #fff; border-radius: 999px; padding: 6px 18px; font-weight: 800; margin-top: 10px; animation: pop .5s; }
+
+.vs-result-row {
+  display: flex; align-items: center; gap: 14px;
+  background: #fff; border-radius: 20px;
+  padding: 12px 20px; margin: 10px auto; max-width: 480px;
+  font-size: 1.4rem; font-weight: 800;
+  border: 4px solid var(--pc, #ccc);
+}
+.vs-result-row .vs-avatar { font-size: 2.2rem; }
+.vs-result-row .vs-score { margin-left: auto; font-size: 1.8rem; color: #ff5a3c; }
+.vs-crown { font-size: 1.8rem; }
+
+/* ===== 排行榜 ===== */
+.board-content { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 22px; }
+.board-section {
+  background: #fff; border-radius: 24px; padding: 18px 22px;
+  border: 4px solid var(--pc, #e8dcc8);
+}
+.board-section h2 { font-size: 1.35rem; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.board-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 4px; font-size: 1.15rem;
+  border-bottom: 2px dashed #f0e6d6;
+}
+.board-row:last-child { border-bottom: none; }
+.board-rank { width: 44px; font-weight: 900; font-size: 1.25rem; }
+.board-date { margin-left: auto; color: #a08a6d; font-size: .95rem; }
+.board-score { font-weight: 900; color: #ff5a3c; width: 80px; text-align: right; }
+.board-empty { color: #a08a6d; padding: 8px 4px; }
+
+/* ===== 動畫 ===== */
+@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes pop { 0% { transform: scale(.6); } 70% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+@keyframes slideup { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+@keyframes confetti-fall {
+  from { transform: translateY(-10dvh) rotate(0deg); }
+  to { transform: translateY(110dvh) rotate(720deg); }
+}
+.confetti {
+  position: fixed; top: 0; z-index: 40;
+  font-size: 2rem; pointer-events: none;
+  animation: confetti-fall linear forwards;
+}
+
+/* 直放小螢幕微調 */
+@media (max-width: 600px) {
+  .profile-card { width: 150px; }
+  .q-options { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .opt-btn { min-height: 92px; }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "小小問答樂園",
+  "short_name": "問答樂園",
+  "description": "給小朋友的選擇題問答遊戲：認知、數學、英文、生活情境",
+  "lang": "zh-Hant",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fff7e0",
+  "theme_color": "#ffb703",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
