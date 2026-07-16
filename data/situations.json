@@ -1,0 +1,616 @@
+{
+  "$schema": "./situations.schema.md",
+  "categories": {
+    "traffic": "交通安全",
+    "danger": "危險辨識",
+    "routine": "生活常規",
+    "manners": "禮貌與社交",
+    "hygiene": "衛生習慣"
+  },
+  "questions": [
+    {
+      "id": "traffic-01",
+      "category": "traffic",
+      "question": "在馬路上應該走哪裡？",
+      "image": "🚸🛣️🚗",
+      "options": [
+        { "text": "人行道", "emoji": "🚶", "correct": true },
+        { "text": "馬路中間", "emoji": "🛣️" },
+        { "text": "隨便走", "emoji": "🤷" }
+      ],
+      "explanation": "要走人行道才安全，走在馬路中間會被車車撞到，很危險喔！"
+    },
+    {
+      "id": "traffic-02",
+      "category": "traffic",
+      "question": "過馬路的時候，什麼燈亮了才可以走？",
+      "image": "🚦🚸",
+      "options": [
+        { "text": "綠燈小綠人", "emoji": "🟢", "correct": true },
+        { "text": "紅燈", "emoji": "🔴" },
+        { "text": "不用看燈", "emoji": "🙈" }
+      ],
+      "explanation": "要等綠燈小綠人亮了，左右看沒有車才可以過馬路喔！"
+    },
+    {
+      "id": "traffic-03",
+      "category": "traffic",
+      "question": "過馬路之前要先做什麼？",
+      "image": "🛑👀🚗",
+      "options": [
+        { "text": "停下來左右看", "emoji": "👀", "correct": true },
+        { "text": "直接衝過去", "emoji": "🏃" },
+        { "text": "閉著眼睛走", "emoji": "😑" }
+      ],
+      "explanation": "過馬路前要先停下來，左看看、右看看，確定沒有車才安全喔！"
+    },
+    {
+      "id": "traffic-04",
+      "category": "traffic",
+      "question": "坐車的時候要做什麼？",
+      "image": "🚗👨‍👩‍👧‍👦",
+      "options": [
+        { "text": "繫好安全帶", "emoji": "🔒", "correct": true },
+        { "text": "在車上跳來跳去", "emoji": "🤸" },
+        { "text": "把頭伸出窗外", "emoji": "🙆" }
+      ],
+      "explanation": "坐車一定要繫好安全帶，才不會受傷喔！"
+    },
+    {
+      "id": "traffic-05",
+      "category": "traffic",
+      "question": "騎腳踏車的時候要戴什麼？",
+      "image": "🚲✨",
+      "options": [
+        { "text": "安全帽", "emoji": "⛑️", "correct": true },
+        { "text": "生日帽", "emoji": "🥳" },
+        { "text": "什麼都不戴", "emoji": "🙅" }
+      ],
+      "explanation": "騎腳踏車要戴安全帽，保護我們的頭喔！"
+    },
+    {
+      "id": "traffic-06",
+      "category": "traffic",
+      "question": "紅燈亮的時候要怎麼做？",
+      "image": "🚦🔴",
+      "options": [
+        { "text": "停下來等", "emoji": "🧍", "correct": true },
+        { "text": "快跑過去", "emoji": "🏃" },
+        { "text": "假裝沒看到", "emoji": "🙈" }
+      ],
+      "explanation": "紅燈停、綠燈行！紅燈的時候要乖乖停下來等喔！"
+    },
+    {
+      "id": "traffic-07",
+      "category": "traffic",
+      "question": "在停車場的時候要怎麼做？",
+      "image": "🅿️🚗🚙",
+      "options": [
+        { "text": "牽著大人的手", "emoji": "🤝", "correct": true },
+        { "text": "自己跑來跑去", "emoji": "🏃" },
+        { "text": "躲在車子後面玩", "emoji": "🫣" }
+      ],
+      "explanation": "停車場有很多車子，開車的人看不到小朋友，要牽好大人的手喔！"
+    },
+    {
+      "id": "traffic-08",
+      "category": "traffic",
+      "question": "球滾到馬路上了，該怎麼辦？",
+      "image": "⚽🛣️😲",
+      "options": [
+        { "text": "請大人幫忙撿", "emoji": "🙋", "correct": true },
+        { "text": "自己衝出去撿", "emoji": "🏃" },
+        { "text": "趴在馬路上找", "emoji": "🧎" }
+      ],
+      "explanation": "馬路上有車子很危險，球滾出去要請大人幫忙撿喔！"
+    },
+    {
+      "id": "traffic-09",
+      "category": "traffic",
+      "question": "走路的時候應該怎麼樣？",
+      "image": "🚶👀",
+      "options": [
+        { "text": "看著前面專心走", "emoji": "👀", "correct": true },
+        { "text": "邊走邊看平板", "emoji": "📱" },
+        { "text": "跟朋友追來追去", "emoji": "🏃" }
+      ],
+      "explanation": "走路要看前面專心走，才不會撞到東西或跌倒喔！"
+    },
+    {
+      "id": "traffic-10",
+      "category": "traffic",
+      "question": "車子停好要下車的時候，該怎麼做？",
+      "image": "🚗🚪",
+      "options": [
+        { "text": "等大人說可以才開門", "emoji": "🧑‍🤝‍🧑", "correct": true },
+        { "text": "自己用力推開門", "emoji": "💪" },
+        { "text": "從車窗爬出去", "emoji": "🧗" }
+      ],
+      "explanation": "下車前要等大人看好旁邊沒有車，說可以了才能開門喔！"
+    },
+
+    {
+      "id": "danger-01",
+      "category": "danger",
+      "question": "牆壁上插座的洞洞可以玩嗎？",
+      "image": "🔌⚡",
+      "options": [
+        { "text": "不可以碰", "emoji": "🙅", "correct": true },
+        { "text": "用手指戳戳看", "emoji": "👉" },
+        { "text": "拿東西插進去", "emoji": "🍴" }
+      ],
+      "explanation": "插座裡面有電，摸了會觸電受傷，絕對不可以玩喔！"
+    },
+    {
+      "id": "danger-02",
+      "category": "danger",
+      "question": "桌上有一碗熱熱的湯，想喝的時候怎麼辦？",
+      "image": "🍲♨️",
+      "options": [
+        { "text": "請大人幫忙", "emoji": "🙋", "correct": true },
+        { "text": "自己伸手去端", "emoji": "🫲" },
+        { "text": "用力拉桌巾", "emoji": "💪" }
+      ],
+      "explanation": "熱湯會燙傷手手，要請大人幫忙，等涼一點再喝喔！"
+    },
+    {
+      "id": "danger-03",
+      "category": "danger",
+      "question": "不認識的人要給你糖果，該怎麼辦？",
+      "image": "🍬🧑❓",
+      "options": [
+        { "text": "不拿，先問爸爸媽媽", "emoji": "🙅", "correct": true },
+        { "text": "馬上拿來吃", "emoji": "😋" },
+        { "text": "跟著他走", "emoji": "🚶" }
+      ],
+      "explanation": "不認識的人給的東西不能拿，要先問過爸爸媽媽才可以喔！"
+    },
+    {
+      "id": "danger-04",
+      "category": "danger",
+      "question": "在外面找不到爸爸媽媽了，該怎麼辦？",
+      "image": "😢🏬❓",
+      "options": [
+        { "text": "站在原地，找警察或店員幫忙", "emoji": "👮", "correct": true },
+        { "text": "自己到處亂跑找", "emoji": "🏃" },
+        { "text": "跟不認識的人走", "emoji": "🚶" }
+      ],
+      "explanation": "走失的時候要站在原地不要亂跑，可以找警察叔叔或店員阿姨幫忙喔！"
+    },
+    {
+      "id": "danger-05",
+      "category": "danger",
+      "question": "廚房的刀子可以拿來玩嗎？",
+      "image": "🔪🍳",
+      "options": [
+        { "text": "不可以，會割傷", "emoji": "🙅", "correct": true },
+        { "text": "拿來切玩具", "emoji": "🧸" },
+        { "text": "拿著跑來跑去", "emoji": "🏃" }
+      ],
+      "explanation": "刀子很利，會割傷手手，小朋友不可以拿來玩喔！"
+    },
+    {
+      "id": "danger-06",
+      "category": "danger",
+      "question": "看到打火機可以玩嗎？",
+      "image": "🔥🚫",
+      "options": [
+        { "text": "不可以，會燙傷", "emoji": "🙅", "correct": true },
+        { "text": "點點看火", "emoji": "🔥" },
+        { "text": "偷偷收起來玩", "emoji": "🫣" }
+      ],
+      "explanation": "打火機會生火，會燙傷還可能讓房子燒起來，不可以玩喔！"
+    },
+    {
+      "id": "danger-07",
+      "category": "danger",
+      "question": "撿到不認識的藥丸，該怎麼辦？",
+      "image": "💊❓",
+      "options": [
+        { "text": "告訴大人，不能吃", "emoji": "🙋", "correct": true },
+        { "text": "吃吃看什麼味道", "emoji": "😋" },
+        { "text": "分給朋友吃", "emoji": "🤝" }
+      ],
+      "explanation": "不認識的藥不能亂吃，吃錯藥會肚子痛痛生病，要拿給大人喔！"
+    },
+    {
+      "id": "danger-08",
+      "category": "danger",
+      "question": "可以爬到窗戶旁邊玩嗎？",
+      "image": "🪟🏢",
+      "options": [
+        { "text": "不可以，會掉下去", "emoji": "🙅", "correct": true },
+        { "text": "可以，風景很好", "emoji": "🌇" },
+        { "text": "把身體伸出去看", "emoji": "🙆" }
+      ],
+      "explanation": "爬窗戶很危險，掉下去會受重傷，不可以在窗邊玩喔！"
+    },
+    {
+      "id": "danger-09",
+      "category": "danger",
+      "question": "想游泳的時候要怎麼做？",
+      "image": "🏊💧",
+      "options": [
+        { "text": "有大人陪才可以下水", "emoji": "🧑‍🤝‍🧑", "correct": true },
+        { "text": "自己偷偷跳下水", "emoji": "🤸" },
+        { "text": "把朋友壓到水裡玩", "emoji": "😈" }
+      ],
+      "explanation": "游泳一定要有大人陪著才安全，自己下水很危險喔！"
+    },
+    {
+      "id": "danger-10",
+      "category": "danger",
+      "question": "電梯門快要關起來的時候，該怎麼辦？",
+      "image": "🛗🚪",
+      "options": [
+        { "text": "等下一班電梯", "emoji": "🧍", "correct": true },
+        { "text": "用手去擋門", "emoji": "🫸" },
+        { "text": "用最快的速度衝進去", "emoji": "🏃" }
+      ],
+      "explanation": "電梯門會夾到手手很危險，門快關了就等下一班喔！"
+    },
+
+    {
+      "id": "routine-01",
+      "category": "routine",
+      "question": "吃飯之前要先做什麼？",
+      "image": "🍚🧼",
+      "options": [
+        { "text": "洗手", "emoji": "🧼", "correct": true },
+        { "text": "直接用手抓來吃", "emoji": "🫲" },
+        { "text": "先玩玩具", "emoji": "🧸" }
+      ],
+      "explanation": "吃飯前要先洗手，把細菌洗掉，才不會吃到肚子裡喔！"
+    },
+    {
+      "id": "routine-02",
+      "category": "routine",
+      "question": "垃圾要丟到哪裡？",
+      "image": "🗑️🍬",
+      "options": [
+        { "text": "垃圾桶", "emoji": "🗑️", "correct": true },
+        { "text": "丟在地上", "emoji": "⬇️" },
+        { "text": "藏在沙發下面", "emoji": "🛋️" }
+      ],
+      "explanation": "垃圾要丟進垃圾桶，家裡才會乾乾淨淨喔！"
+    },
+    {
+      "id": "routine-03",
+      "category": "routine",
+      "question": "玩具玩完了要怎麼做？",
+      "image": "🧸📦",
+      "options": [
+        { "text": "收回原來的地方", "emoji": "📦", "correct": true },
+        { "text": "丟在地上不管", "emoji": "⬇️" },
+        { "text": "踢到床底下", "emoji": "🦶" }
+      ],
+      "explanation": "玩具玩完要收好，下次要玩才找得到，也不會踩到跌倒喔！"
+    },
+    {
+      "id": "routine-04",
+      "category": "routine",
+      "question": "吃完飯，自己的碗要怎麼辦？",
+      "image": "🍚🥢✨",
+      "options": [
+        { "text": "拿到廚房水槽", "emoji": "🚰", "correct": true },
+        { "text": "留在桌上不管", "emoji": "🙃" },
+        { "text": "藏到椅子下面", "emoji": "🪑" }
+      ],
+      "explanation": "吃完飯把碗拿到廚房，是幫忙做家事的好寶寶喔！"
+    },
+    {
+      "id": "routine-05",
+      "category": "routine",
+      "question": "看完的書要放到哪裡？",
+      "image": "📖📚",
+      "options": [
+        { "text": "放回書架", "emoji": "📚", "correct": true },
+        { "text": "丟在地板上", "emoji": "⬇️" },
+        { "text": "壓在枕頭下面", "emoji": "🛏️" }
+      ],
+      "explanation": "書看完要放回書架，下次想看才找得到喔！"
+    },
+    {
+      "id": "routine-06",
+      "category": "routine",
+      "question": "早上起床以後要做什麼？",
+      "image": "🌅🛏️",
+      "options": [
+        { "text": "刷牙洗臉", "emoji": "🪥", "correct": true },
+        { "text": "繼續玩平板", "emoji": "📱" },
+        { "text": "直接吃糖果", "emoji": "🍬" }
+      ],
+      "explanation": "早上起床要先刷牙洗臉，精神好好開始新的一天喔！"
+    },
+    {
+      "id": "routine-07",
+      "category": "routine",
+      "question": "脫下來的鞋子要放哪裡？",
+      "image": "👟🚪",
+      "options": [
+        { "text": "放進鞋櫃排整齊", "emoji": "🗄️", "correct": true },
+        { "text": "亂丟在門口", "emoji": "🤾" },
+        { "text": "丟得到處都是", "emoji": "🌪️" }
+      ],
+      "explanation": "鞋子要排整齊放好，門口才不會亂七八糟，也不會絆倒人喔！"
+    },
+    {
+      "id": "routine-08",
+      "category": "routine",
+      "question": "食物不小心掉到地上了，該怎麼辦？",
+      "image": "🍪⬇️😲",
+      "options": [
+        { "text": "撿起來丟垃圾桶", "emoji": "🗑️", "correct": true },
+        { "text": "假裝沒看到", "emoji": "🙈" },
+        { "text": "踢到旁邊去", "emoji": "🦶" }
+      ],
+      "explanation": "掉在地上的食物要撿起來丟垃圾桶，地板才會乾淨喔！"
+    },
+    {
+      "id": "routine-09",
+      "category": "routine",
+      "question": "睡覺時間到了，該怎麼做？",
+      "image": "🌙🛏️",
+      "options": [
+        { "text": "收好玩具去睡覺", "emoji": "😴", "correct": true },
+        { "text": "繼續玩不睡覺", "emoji": "🧸" },
+        { "text": "大哭大鬧", "emoji": "😭" }
+      ],
+      "explanation": "時間到了就要乖乖睡覺，睡飽飽才會長高高、精神好喔！"
+    },
+    {
+      "id": "routine-10",
+      "category": "routine",
+      "question": "在家裡面應該怎麼移動？",
+      "image": "🏠🚶",
+      "options": [
+        { "text": "慢慢走", "emoji": "🚶", "correct": true },
+        { "text": "用最快的速度衝", "emoji": "🏃" },
+        { "text": "邊跑邊推人", "emoji": "🫸" }
+      ],
+      "explanation": "在家裡要慢慢走，跑太快會撞到桌角或跌倒受傷喔！"
+    },
+
+    {
+      "id": "manners-01",
+      "category": "manners",
+      "question": "收到別人送的禮物，要說什麼？",
+      "image": "🎁😊",
+      "options": [
+        { "text": "謝謝", "emoji": "🙏", "correct": true },
+        { "text": "什麼都不說就拿走", "emoji": "😐" },
+        { "text": "說我不喜歡這個", "emoji": "😤" }
+      ],
+      "explanation": "收到禮物要說謝謝，別人會覺得很開心喔！"
+    },
+    {
+      "id": "manners-02",
+      "category": "manners",
+      "question": "想玩別人的玩具，該怎麼做？",
+      "image": "🧸🙋",
+      "options": [
+        { "text": "先問「可以借我玩嗎？」", "emoji": "🙋", "correct": true },
+        { "text": "直接搶過來", "emoji": "💪" },
+        { "text": "偷偷拿走", "emoji": "🫣" }
+      ],
+      "explanation": "想玩別人的東西要先問，對方說好才可以拿喔！"
+    },
+    {
+      "id": "manners-03",
+      "category": "manners",
+      "question": "不小心撞到別人，要說什麼？",
+      "image": "💥😯",
+      "options": [
+        { "text": "對不起", "emoji": "🙇", "correct": true },
+        { "text": "假裝沒事走掉", "emoji": "🚶" },
+        { "text": "怪對方擋路", "emoji": "😤" }
+      ],
+      "explanation": "不小心撞到別人要說對不起，這樣才有禮貌喔！"
+    },
+    {
+      "id": "manners-04",
+      "category": "manners",
+      "question": "早上到學校看到老師，要說什麼？",
+      "image": "🏫🧑‍🏫",
+      "options": [
+        { "text": "老師早安", "emoji": "👋", "correct": true },
+        { "text": "低頭走掉", "emoji": "😑" },
+        { "text": "大聲尖叫", "emoji": "😱" }
+      ],
+      "explanation": "看到老師和朋友要打招呼說早安，大家都會很開心喔！"
+    },
+    {
+      "id": "manners-05",
+      "category": "manners",
+      "question": "別人正在說話的時候，該怎麼做？",
+      "image": "🗣️👂",
+      "options": [
+        { "text": "等他說完再說", "emoji": "👂", "correct": true },
+        { "text": "大聲打斷他", "emoji": "📢" },
+        { "text": "摀住他的嘴巴", "emoji": "🫢" }
+      ],
+      "explanation": "別人說話時要耐心聽完，想說話等他說完再說，才有禮貌喔！"
+    },
+    {
+      "id": "manners-06",
+      "category": "manners",
+      "question": "請別人幫忙的時候，要說什麼？",
+      "image": "🙋🤝",
+      "options": [
+        { "text": "請幫幫我，謝謝", "emoji": "🙏", "correct": true },
+        { "text": "大喊「快點過來！」", "emoji": "📢" },
+        { "text": "用手指著他叫他做", "emoji": "👉" }
+      ],
+      "explanation": "請別人幫忙要說「請」和「謝謝」，別人才會願意幫你喔！"
+    },
+    {
+      "id": "manners-07",
+      "category": "manners",
+      "question": "朋友跌倒了，該怎麼做？",
+      "image": "🤕🧒",
+      "options": [
+        { "text": "扶他起來，問他還好嗎", "emoji": "🤝", "correct": true },
+        { "text": "站在旁邊笑他", "emoji": "😆" },
+        { "text": "走開不理他", "emoji": "🚶" }
+      ],
+      "explanation": "朋友跌倒要去關心他、幫忙他，這樣才是好朋友喔！"
+    },
+    {
+      "id": "manners-08",
+      "category": "manners",
+      "question": "想玩溜滑梯，但是有人在排隊，該怎麼辦？",
+      "image": "🛝🧍🧍",
+      "options": [
+        { "text": "排隊等輪到自己", "emoji": "🧍", "correct": true },
+        { "text": "插隊擠到最前面", "emoji": "💨" },
+        { "text": "把別人推開", "emoji": "🫸" }
+      ],
+      "explanation": "玩遊樂器材要排隊，輪流玩大家才都玩得到喔！"
+    },
+    {
+      "id": "manners-09",
+      "category": "manners",
+      "question": "拿到好吃的餅乾，旁邊有弟弟妹妹，該怎麼做？",
+      "image": "🍪🧒👶",
+      "options": [
+        { "text": "分享一起吃", "emoji": "🤝", "correct": true },
+        { "text": "全部藏起來自己吃", "emoji": "🫣" },
+        { "text": "在他面前炫耀", "emoji": "😝" }
+      ],
+      "explanation": "好吃的東西跟大家分享，一起吃更開心喔！"
+    },
+    {
+      "id": "manners-10",
+      "category": "manners",
+      "question": "去朋友家玩，要回家的時候該說什麼？",
+      "image": "🏠👋",
+      "options": [
+        { "text": "謝謝招待，再見", "emoji": "👋", "correct": true },
+        { "text": "什麼都不說就走", "emoji": "🚶" },
+        { "text": "把人家的玩具帶走", "emoji": "🧸" }
+      ],
+      "explanation": "去別人家玩，離開時要說謝謝和再見，才是有禮貌的小客人喔！"
+    },
+
+    {
+      "id": "hygiene-01",
+      "category": "hygiene",
+      "question": "想打噴嚏的時候，要怎麼做？",
+      "image": "🤧💨",
+      "options": [
+        { "text": "用手肘遮住口鼻", "emoji": "💪", "correct": true },
+        { "text": "對著別人打", "emoji": "🧑" },
+        { "text": "對著食物打", "emoji": "🍚" }
+      ],
+      "explanation": "打噴嚏要用手肘遮住嘴巴和鼻子，才不會把細菌噴到別人身上喔！"
+    },
+    {
+      "id": "hygiene-02",
+      "category": "hygiene",
+      "question": "上完廁所要做什麼？",
+      "image": "🚽🧼",
+      "options": [
+        { "text": "沖水然後洗手", "emoji": "🧼", "correct": true },
+        { "text": "直接跑去玩", "emoji": "🏃" },
+        { "text": "只沖水不洗手", "emoji": "🙅" }
+      ],
+      "explanation": "上完廁所要記得沖水，然後用肥皂把手洗乾淨喔！"
+    },
+    {
+      "id": "hygiene-03",
+      "category": "hygiene",
+      "question": "睡覺之前要做什麼？",
+      "image": "🌙🪥",
+      "options": [
+        { "text": "刷牙", "emoji": "🪥", "correct": true },
+        { "text": "吃糖果", "emoji": "🍬" },
+        { "text": "喝汽水", "emoji": "🥤" }
+      ],
+      "explanation": "睡前要刷牙，把牙齒上的細菌刷掉，才不會蛀牙喔！"
+    },
+    {
+      "id": "hygiene-04",
+      "category": "hygiene",
+      "question": "手髒髒的時候想吃東西，該怎麼辦？",
+      "image": "🫲🍎",
+      "options": [
+        { "text": "先洗手再吃", "emoji": "🧼", "correct": true },
+        { "text": "直接用髒手抓來吃", "emoji": "😋" },
+        { "text": "用衣服擦一擦就吃", "emoji": "👕" }
+      ],
+      "explanation": "手髒髒要先用肥皂洗乾淨再吃東西，細菌才不會跑到肚子裡喔！"
+    },
+    {
+      "id": "hygiene-05",
+      "category": "hygiene",
+      "question": "咳嗽的時候要怎麼做？",
+      "image": "😷🤒",
+      "options": [
+        { "text": "遮住嘴巴或戴口罩", "emoji": "😷", "correct": true },
+        { "text": "對著別人咳", "emoji": "🧑" },
+        { "text": "不用管，繼續玩", "emoji": "🤷" }
+      ],
+      "explanation": "咳嗽要遮住嘴巴，生病的時候戴口罩，才不會傳染給別人喔！"
+    },
+    {
+      "id": "hygiene-06",
+      "category": "hygiene",
+      "question": "食物掉在地上，還可以吃嗎？",
+      "image": "🍭⬇️🦠",
+      "options": [
+        { "text": "不能吃，髒髒的", "emoji": "🙅", "correct": true },
+        { "text": "撿起來馬上吃", "emoji": "😋" },
+        { "text": "吹一吹就可以吃", "emoji": "💨" }
+      ],
+      "explanation": "掉在地上的食物沾到細菌，吃了會肚子痛，不能吃喔！"
+    },
+    {
+      "id": "hygiene-07",
+      "category": "hygiene",
+      "question": "指甲長長了，該怎麼辦？",
+      "image": "💅✂️",
+      "options": [
+        { "text": "請大人幫忙剪", "emoji": "✂️", "correct": true },
+        { "text": "用牙齒咬掉", "emoji": "🦷" },
+        { "text": "留著不管", "emoji": "🤷" }
+      ],
+      "explanation": "指甲長了會藏細菌，要請大人幫忙剪短短的喔！"
+    },
+    {
+      "id": "hygiene-08",
+      "category": "hygiene",
+      "question": "玩得全身流汗髒髒的，該怎麼辦？",
+      "image": "😅🛁",
+      "options": [
+        { "text": "洗澡換乾淨衣服", "emoji": "🛁", "correct": true },
+        { "text": "穿著髒衣服睡覺", "emoji": "😴" },
+        { "text": "噴香水蓋住臭味", "emoji": "🌸" }
+      ],
+      "explanation": "流汗髒髒要洗澡澡，換上乾淨的衣服才舒服又健康喔！"
+    },
+    {
+      "id": "hygiene-09",
+      "category": "hygiene",
+      "question": "口渴了，看到別人的水壺，該怎麼做？",
+      "image": "🥤💧",
+      "options": [
+        { "text": "喝自己的水壺", "emoji": "🍼", "correct": true },
+        { "text": "拿別人的來喝", "emoji": "🫲" },
+        { "text": "偷喝一口再放回去", "emoji": "🫣" }
+      ],
+      "explanation": "要喝自己的水壺，喝別人的會交換細菌，容易生病喔！"
+    },
+    {
+      "id": "hygiene-10",
+      "category": "hygiene",
+      "question": "手指可以一直放在嘴巴裡嗎？",
+      "image": "👶👄🦠",
+      "options": [
+        { "text": "不可以，手上有細菌", "emoji": "🙅", "correct": true },
+        { "text": "可以，很好玩", "emoji": "😝" },
+        { "text": "可以邊吃手邊摸玩具", "emoji": "🧸" }
+      ],
+      "explanation": "手上有很多看不見的細菌，放進嘴巴細菌就跑進肚子裡了喔！"
+    }
+  ]
+}
