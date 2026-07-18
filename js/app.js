@@ -2,8 +2,9 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const SOLO_QUESTIONS = 10;
-  const VS_PER_PLAYER = 5;
+  const SOLO_COUNTS = [10, 20, 30];
+  const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
+  const CAT_ICONS = { cognition: '🐶', colors: '🎨', shapes: '🔺', counting: '🔢', arithmetic: '➕', english: '🔤', situations: '🚸' };
 
   const AVATARS = ['🦁','🐰','🐯','🐼','🐸','🐵','🦊','🐻','🐨','🐷','🦄','🐙','🦖','🐳','🚀','🌟','🍓','🎈','⚽','🎀','🤖','👑','🦋','🐥'];
   const COLORS = ['#e63946','#1d6fd6','#2a9d3f','#f4802c','#8144c4','#f27fb2','#00a8a8','#8b5a2b','#5b6ee1','#d4a017'];
@@ -13,6 +14,7 @@
   let versusSelection = [];  // 對戰模式選到的玩家 id（依點選順序）
   let editingId = null;      // 編輯中的玩家 id（null = 新增）
   let editState = null;
+  let setup = null;          // 選題設定 {mode, profileIds, category, count}
 
   /* ===== 畫面切換 ===== */
   function showScreen(id) {
@@ -44,7 +46,7 @@
     grid.innerHTML = '';
     for (const p of Store.getProfiles()) {
       const card = profileCard(p);
-      card.addEventListener('click', () => { Sfx.unlock(); Sfx.tap(); startSolo(p.id); });
+      card.addEventListener('click', () => { Sfx.unlock(); Sfx.tap(); openSetup('solo', [p.id]); });
 
       const edit = document.createElement('button');
       edit.className = 'profile-edit';
@@ -177,44 +179,94 @@
     showScreen('screen-versus-setup');
   }
 
-  /* ===== 建立一輪 ===== */
-  function startSolo(profileId) {
-    const p = Store.getProfile(profileId);
-    if (!p) return;
-    const questions = Gen.buildRound(p, SOLO_QUESTIONS);
-    session = {
-      mode: 'solo',
-      players: [p],
-      queue: questions.map(q => ({ playerIdx: 0, question: q })),
-      pos: 0,
-      scores: [0],
-      corrects: [0],
-    };
-    showScreen('screen-quiz');
-    renderQuestion();
+  /* ===== 選題庫與題數 ===== */
+  function openSetup(mode, profileIds) {
+    setup = { mode, profileIds, category: 'mixed', count: (mode === 'versus' ? VS_COUNTS : SOLO_COUNTS)[0] };
+    renderSetup();
+    showScreen('screen-setup');
   }
 
-  function startVersus() {
-    const players = versusSelection.map(id => Store.getProfile(id)).filter(Boolean);
-    if (players.length < 2) return;
-    const used = new Set(); // 同一場不出重複題
-    const perPlayer = players.map(p => Gen.buildRound(p, VS_PER_PLAYER, used));
-    const queue = [];
-    for (let round = 0; round < VS_PER_PLAYER; round++) {
-      players.forEach((p, i) => {
-        if (perPlayer[i][round]) queue.push({ playerIdx: i, question: perPlayer[i][round] });
-      });
+  function renderSetup() {
+    const players = setup.profileIds.map(id => Store.getProfile(id)).filter(Boolean);
+
+    const chipRow = $('setup-players');
+    chipRow.innerHTML = '';
+    for (const p of players) {
+      const chip = document.createElement('span');
+      chip.className = 'setup-player-chip';
+      chip.style.setProperty('--pc', p.color);
+      chip.innerHTML = `<span class="chip-avatar">${p.avatar}</span>${escapeHtml(p.name)}`;
+      chipRow.appendChild(chip);
     }
-    session = {
-      mode: 'versus',
-      players,
-      queue,
-      pos: 0,
-      scores: players.map(() => 0),
-      corrects: players.map(() => 0),
-    };
-    showScreen('screen-quiz');
-    showTurnOverlay();
+
+    const cats = $('setup-cats');
+    cats.innerHTML = '';
+    const entries = [
+      { key: 'mixed', emoji: '🎲', label: '綜合題' },
+      ...Store.ALL_TYPES.map(t => ({
+        key: t, emoji: CAT_ICONS[t] || '❓',
+        label: Gen.TYPE_INFO[t].label.replace(/^\S+\s*/, ''),
+      })),
+    ];
+    for (const c of entries) {
+      const b = document.createElement('button');
+      b.className = 'cat-card' + (setup.category === c.key ? ' selected' : '');
+      b.innerHTML = `<span class="cat-emoji">${c.emoji}</span><span>${c.label}</span>`;
+      b.addEventListener('click', () => { Sfx.tap(); setup.category = c.key; renderSetup(); });
+      cats.appendChild(b);
+    }
+
+    $('setup-count-title').textContent = setup.mode === 'versus' ? '每人要答幾題？' : '要玩幾題？';
+    const counts = $('setup-counts');
+    counts.innerHTML = '';
+    for (const n of (setup.mode === 'versus' ? VS_COUNTS : SOLO_COUNTS)) {
+      const b = document.createElement('button');
+      b.className = 'count-btn' + (setup.count === n ? ' selected' : '');
+      b.textContent = `${n} 題`;
+      b.addEventListener('click', () => { Sfx.tap(); setup.count = n; renderSetup(); });
+      counts.appendChild(b);
+    }
+  }
+
+  /* ===== 建立一輪 ===== */
+  function beginRound() {
+    if (!setup) return;
+    const players = setup.profileIds.map(id => Store.getProfile(id)).filter(Boolean);
+    if (!players.length) { goHome(); return; }
+    const typesOverride = setup.category === 'mixed' ? null : [setup.category];
+
+    if (setup.mode === 'solo' || players.length === 1) {
+      const questions = Gen.buildRound(players[0], setup.count, new Set(), typesOverride);
+      session = {
+        mode: 'solo',
+        players: [players[0]],
+        queue: questions.map(q => ({ playerIdx: 0, question: q })),
+        pos: 0,
+        scores: [0],
+        corrects: [0],
+      };
+      showScreen('screen-quiz');
+      renderQuestion();
+    } else {
+      const used = new Set(); // 同一場不出重複題
+      const perPlayer = players.map(p => Gen.buildRound(p, setup.count, used, typesOverride));
+      const queue = [];
+      for (let round = 0; round < setup.count; round++) {
+        players.forEach((p, i) => {
+          if (perPlayer[i][round]) queue.push({ playerIdx: i, question: perPlayer[i][round] });
+        });
+      }
+      session = {
+        mode: 'versus',
+        players,
+        queue,
+        pos: 0,
+        scores: players.map(() => 0),
+        corrects: players.map(() => 0),
+      };
+      showScreen('screen-quiz');
+      showTurnOverlay();
+    }
   }
 
   /* ===== 換人過場（對戰） ===== */
@@ -364,7 +416,8 @@
       const prevBest = Store.bestScore(p.id);
       Store.addScore(p.id, { score, correct, total, date: today });
       const isRecord = prevBest === null ? score > 0 : score > prevBest;
-      const stars = correct >= 9 ? '⭐⭐⭐' : correct >= 6 ? '⭐⭐☆' : correct >= 3 ? '⭐☆☆' : '☆☆☆';
+      const ratio = correct / total;
+      const stars = ratio >= 0.9 ? '⭐⭐⭐' : ratio >= 0.6 ? '⭐⭐☆' : ratio >= 0.3 ? '⭐☆☆' : '☆☆☆';
 
       box.innerHTML = `
         <div class="turn-avatar" style="background:${p.color}33; margin-bottom:8px;">${p.avatar}</div>
@@ -413,9 +466,8 @@
   }
 
   function playAgain() {
-    if (!session) { goHome(); return; }
-    if (session.mode === 'solo') startSolo(session.players[0].id);
-    else { versusSelection = session.players.map(p => p.id); startVersus(); }
+    if (!setup) { goHome(); return; }
+    beginRound(); // 用同一組設定（同玩家、同題庫、同題數）再玩一輪
   }
 
   function confetti() {
@@ -489,7 +541,12 @@
   function bindEvents() {
     $('btn-versus').addEventListener('click', () => { Sfx.unlock(); openVersusSetup(); });
     $('btn-board').addEventListener('click', renderBoard);
-    $('btn-versus-start').addEventListener('click', () => { Sfx.tap(); startVersus(); });
+    $('btn-versus-start').addEventListener('click', () => {
+      if (versusSelection.length < 2) return;
+      Sfx.tap();
+      openSetup('versus', versusSelection.slice());
+    });
+    $('btn-setup-start').addEventListener('click', () => { Sfx.tap(); beginRound(); });
     document.querySelectorAll('.btn-go-home').forEach(b => b.addEventListener('click', goHome));
     document.querySelectorAll('.btn-go-board').forEach(b => b.addEventListener('click', renderBoard));
 

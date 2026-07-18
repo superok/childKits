@@ -19,14 +19,23 @@ const Gen = (() => {
     situations: { label: '🚸 生活情境' },
   };
 
-  const COG_CATS = ['animals', 'fruits', 'foods', 'vehicles', 'body'];
+  const COG_CATS_PREF = ['animals', 'fruits', 'foods', 'vehicles', 'body', 'nature', 'household', 'clothes'];
   const COUNT_CATS = ['animals', 'fruits', 'foods', 'vehicles'];
   const MEASURE = { animals: '隻', fruits: '顆', foods: '個', vehicles: '台' };
   const SHAPE_COLORS = ['#e63946', '#1d6fd6', '#2a9d3f', '#f4802c', '#8144c4'];
+  // 各題型的 signature 前綴：單一題型出完整庫時，用它清除紀錄讓題目可重複
+  const SIG_PREFIX = {
+    cognition: 'cog:', colors: 'color:', shapes: 'shape:',
+    counting: 'count:', arithmetic: 'math:', english: 'en:', situations: 'sit:',
+  };
+
+  let cogCats = [];
 
   function init(vocabData, situationsData) {
     vocab = vocabData;
     situationBank = situationsData;
+    // 詞彙庫實際有的類別才拿來出題（類別要夠 4 個詞才夠出干擾項）
+    cogCats = COG_CATS_PREF.filter(c => Array.isArray(vocab[c]) && vocab[c].length >= 4);
   }
 
   const rand = n => Math.floor(Math.random() * n);
@@ -73,7 +82,7 @@ const Gen = (() => {
   /* ===== 各題型產生器（回傳 null 表示暫時出不了題，會換別的題型） ===== */
 
   function genCognition(diff, used) {
-    const cat = pick(COG_CATS);
+    const cat = pick(cogCats);
     const pool = vocab[cat];
     const fresh = pool.filter(it => !used.has(`cog:${cat}:${it.en}`));
     if (!fresh.length) return null;
@@ -136,7 +145,7 @@ const Gen = (() => {
     const sig = `count:${item.en}:${n}`;
     if (used.has(sig)) return null;
     used.add(sig);
-    const m = MEASURE[cat];
+    const m = MEASURE[cat] || '個';
     return {
       type: 'counting',
       prompt: `數一數，有幾${m}${item.zh}？`,
@@ -181,7 +190,7 @@ const Gen = (() => {
   }
 
   function genEnglish(diff, used) {
-    const cat = pick(COUNT_CATS);
+    const cat = pick(cogCats);
     const pool = vocab[cat];
     const fresh = pool.filter(it => !used.has(`en:${it.en}`));
     if (!fresh.length) return null;
@@ -229,15 +238,24 @@ const Gen = (() => {
     situations: genSituation,
   };
 
+  /** 清掉指定題型的出題紀錄（題庫出完時讓題目可以重複再出） */
+  function clearTypeSigs(used, types) {
+    const prefixes = types.map(t => SIG_PREFIX[t]).filter(Boolean);
+    for (const sig of [...used]) {
+      if (prefixes.some(p => sig.startsWith(p))) used.delete(sig);
+    }
+  }
+
   /**
    * 依玩家設定產生一輪題目。
    * @param profile 玩家（difficulty、types）
    * @param count 題數
    * @param used 已出過題的 signature（對戰時多位玩家共用，避免同場重複）
+   * @param typesOverride 指定題型（單一題型模式傳 ['colors'] 之類；null = 用玩家設定）
    */
-  function buildRound(profile, count, used = new Set()) {
+  function buildRound(profile, count, used = new Set(), typesOverride = null) {
     const diff = DIFF[profile.difficulty] || DIFF[1];
-    let enabled = (profile.types || []).filter(t => GENERATORS[t]);
+    let enabled = (typesOverride || profile.types || []).filter(t => GENERATORS[t]);
     if (!enabled.length) enabled = Object.keys(GENERATORS);
 
     // 平均分配題型再打亂順序
@@ -248,12 +266,16 @@ const Gen = (() => {
     const questions = [];
     for (const type of seq) {
       let q = null;
-      const candidates = [type, ...shuffle(enabled.filter(t => t !== type)), ...shuffle(Object.keys(GENERATORS))];
-      for (const t of candidates) {
-        for (let attempt = 0; attempt < 12 && !q; attempt++) {
-          q = GENERATORS[t](diff, used);
+      // 只在啟用的題型內出題；全部出完就清紀錄重來（例：只玩顏色但選 30 題）
+      for (let pass = 0; pass < 2 && !q; pass++) {
+        const candidates = [type, ...shuffle(enabled.filter(t => t !== type))];
+        for (const t of candidates) {
+          for (let attempt = 0; attempt < 12 && !q; attempt++) {
+            q = GENERATORS[t](diff, used);
+          }
+          if (q) break;
         }
-        if (q) break;
+        if (!q && pass === 0) clearTypeSigs(used, enabled);
       }
       if (q) questions.push(q);
     }
