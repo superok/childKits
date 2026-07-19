@@ -350,6 +350,11 @@
     });
 
     $('feedback').classList.add('hidden');
+
+    // 剛換題的短暫鎖定：避免按「下一題」的手指殘影誤觸同位置的選項
+    optsEl.classList.add('locked');
+    setTimeout(() => optsEl.classList.remove('locked'), 500);
+
     Speech.speak(question.speech.text, question.speech.lang);
   }
 

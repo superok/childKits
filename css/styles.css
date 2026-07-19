@@ -3,6 +3,7 @@
 
 html, body {
   height: 100%;
+  overflow: hidden;
   overscroll-behavior: none;
   touch-action: manipulation;
 }
@@ -23,7 +24,8 @@ input { font-family: inherit; }
 /* ===== 畫面切換 ===== */
 .screen {
   display: none;
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
   flex-direction: column;
   align-items: center;
   padding: max(16px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
@@ -48,6 +50,8 @@ input { font-family: inherit; }
   justify-content: center;
   align-items: stretch;
   max-width: 900px;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .profile-card {
@@ -116,7 +120,7 @@ input { font-family: inherit; }
 .versus-btn { background: #ff5a3c; }
 .board-btn { background: #1d6fd6; }
 .ghost-btn { background: #fff; color: #8a6f56; border: 3px solid #d9c7ad; }
-.next-btn { background: #2a9d3f; font-size: 1.9rem; }
+.next-btn { background: #2a9d3f; font-size: 1.7rem; padding: 14px 36px; }
 .turn-go-btn { background: #fff; color: #3a2e2a; font-size: 2rem; padding: 22px 46px; }
 
 .icon-btn {
@@ -129,7 +133,7 @@ input { font-family: inherit; }
 .delete-link { margin-top: 14px; color: #c0392b; text-decoration: underline; font-size: .95rem; }
 
 /* ===== 選題庫與題數 ===== */
-.setup-players { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-bottom: 18px; }
+.setup-players { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 12px; }
 .setup-player-chip {
   display: flex; align-items: center; gap: 10px;
   background: #fff; border: 4px solid var(--pc, #ccc);
@@ -138,22 +142,24 @@ input { font-family: inherit; }
 }
 .setup-player-chip .chip-avatar { font-size: 2rem; }
 
-.setup-sub { font-size: 1.6rem; color: #8a6f56; margin: 26px 0 14px; }
+.setup-sub { font-size: 1.5rem; color: #8a6f56; margin: 16px 0 10px; }
 
 .cat-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(160px, 210px));
-  gap: 16px;
+  gap: 14px;
   justify-content: center;
   width: 100%;
+  min-height: 0;
+  overflow-y: auto;
 }
 .cat-card {
   background: #fff;
   border: 4px solid #e8dcc8;
   border-radius: 26px;
   box-shadow: 0 5px 0 rgba(0,0,0,.08);
-  min-height: 150px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  min-height: clamp(110px, 17dvh, 150px);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   padding: 16px 10px;
   font-size: 1.35rem; font-weight: 800;
   transition: transform .08s;
@@ -212,15 +218,18 @@ input { font-family: inherit; }
 .quiz-main {
   flex: 1; width: 100%; max-width: 1000px;
   display: flex; flex-direction: column; align-items: center;
-  padding: 16px 24px 210px; /* 底部留空間給固定的回饋列 */
+  min-height: 0; overflow: hidden;
+  padding: 12px 24px 190px; /* 底部留空間給固定的回饋列（回饋列高度以內） */
 }
 
 .q-image {
-  min-height: 50px;
+  min-height: 0;
+  max-height: 24dvh;
+  overflow: hidden;
   display: flex; flex-wrap: wrap; gap: 8px;
   align-items: center; justify-content: center;
-  font-size: clamp(2.6rem, 7vw, 4.2rem);
-  margin: 10px 0;
+  font-size: clamp(2rem, 6dvh, 4rem);
+  margin: 6px 0;
   max-width: 800px;
 }
 .q-image .math-op { font-size: .7em; color: #8a6f56; margin: 0 10px; }
@@ -240,14 +249,14 @@ input { font-family: inherit; }
   flex: 1;
   align-content: center;
 }
-.q-options.text-mode { grid-template-columns: 1fr; max-width: 700px; }
+.q-options.text-mode { grid-template-columns: 1fr; max-width: 700px; gap: 14px; }
 
 .opt-btn {
   background: #fff;
   border-radius: 28px;
   border: 4px solid #e8dcc8;
   box-shadow: 0 5px 0 rgba(0,0,0,.08);
-  min-height: 180px;
+  min-height: clamp(120px, 22dvh, 180px);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 10px;
   padding: 18px;
@@ -265,7 +274,7 @@ input { font-family: inherit; }
 
 .q-options.text-mode .opt-btn {
   flex-direction: row; justify-content: flex-start;
-  min-height: 110px; font-size: 1.7rem; text-align: left;
+  min-height: clamp(78px, 10dvh, 110px); font-size: 1.7rem; text-align: left;
 }
 .q-options.text-mode .opt-btn .opt-emoji { font-size: 2.8rem; }
 
@@ -273,20 +282,22 @@ input { font-family: inherit; }
 .opt-btn.wrong { border-color: #e63946; background: #ffe3e5; animation: shake .4s; }
 .opt-btn.disabled { pointer-events: none; opacity: .75; }
 .opt-btn.dimmed { opacity: .35; }
+.q-options.locked .opt-btn { pointer-events: none; }
 
 /* ===== 回饋區 ===== */
 .feedback {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
   background: #fff;
   border-top: 6px solid var(--pc, #ffb703);
-  padding: 20px 26px calc(20px + env(safe-area-inset-bottom));
+  padding: 12px 22px calc(12px + env(safe-area-inset-bottom));
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-  gap: 12px 22px;
+  gap: 8px 20px;
+  max-height: 188px; overflow: hidden;
   animation: slideup .25s;
 }
-.feedback-emoji { font-size: 4rem; }
-.feedback-text { font-size: 1.8rem; font-weight: 800; }
-.feedback-explain { width: 100%; text-align: center; font-size: 1.4rem; color: #8a6f56; }
+.feedback-emoji { font-size: 2.8rem; }
+.feedback-text { font-size: 1.6rem; font-weight: 800; }
+.feedback-explain { width: 100%; text-align: center; font-size: 1.25rem; color: #8a6f56; }
 
 /* ===== 過場與對話框 ===== */
 .overlay {
@@ -370,7 +381,7 @@ input { font-family: inherit; }
 .vs-crown { font-size: 1.8rem; }
 
 /* ===== 排行榜 ===== */
-.board-content { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 22px; }
+.board-content { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 22px; flex: 1; min-height: 0; overflow-y: auto; }
 .board-section {
   background: #fff; border-radius: 24px; padding: 18px 22px;
   border: 4px solid var(--pc, #e8dcc8);

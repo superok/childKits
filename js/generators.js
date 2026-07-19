@@ -138,9 +138,13 @@ const Gen = (() => {
     };
   }
 
+  // 這些詞的 emoji 一張圖就是一堆（一串葡萄、一把薯條、兩顆櫻桃），不能拿來數數
+  const NOT_COUNTABLE = new Set(['grapes', 'blueberry', 'cherry', 'fries', 'popcorn', 'noodles', 'rice', 'milk', 'sushi']);
+  const countablePool = cat => vocab[cat].filter(it => !NOT_COUNTABLE.has(it.en));
+
   function genCounting(diff, used) {
     const cat = pick(COUNT_CATS);
-    const item = pick(vocab[cat]);
+    const item = pick(countablePool(cat));
     const n = 1 + rand(diff.countMax);
     const sig = `count:${item.en}:${n}`;
     if (used.has(sig)) return null;
@@ -174,7 +178,7 @@ const Gen = (() => {
     const sig = `math:${a}${opChar}${b}`;
     if (used.has(sig)) return null;
     used.add(sig);
-    const item = pick(vocab.fruits);
+    const item = pick(countablePool('fruits'));
     const image = (a <= 6 && b <= 6)
       ? { kind: 'math', emoji: item.emoji, a, b, op: opChar }
       : null;
