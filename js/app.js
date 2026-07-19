@@ -540,20 +540,38 @@
     const el = $('board-content');
     el.innerHTML = '';
 
+    // 所有玩家同榜競爭，依「一輪題數」分群（10 題榜、20 題榜、30 題榜）
+    const groups = new Map();
     for (const p of Store.getProfiles()) {
+      for (const s of Store.getScores(p.id)) {
+        const total = s.total || 10;
+        if (!groups.has(total)) groups.set(total, []);
+        groups.get(total).push({ p, ...s });
+      }
+    }
+
+    if (!groups.size) {
       const sec = document.createElement('section');
       sec.className = 'board-section';
-      sec.style.setProperty('--pc', p.color);
-      const scores = Store.getScores(p.id).slice(0, 10);
-      let rows = scores.map((s, i) => `
+      sec.innerHTML = '<h2>🏅 排行榜</h2><div class="board-empty">還沒有紀錄，快去玩一輪吧！</div>';
+      el.appendChild(sec);
+    }
+
+    for (const total of [...groups.keys()].sort((a, b) => a - b)) {
+      const entries = groups.get(total)
+        .sort((a, b) => b.score - a.score || (b.date || '').localeCompare(a.date || ''))
+        .slice(0, 10);
+      const sec = document.createElement('section');
+      sec.className = 'board-section';
+      const rows = entries.map((s, i) => `
         <div class="board-row">
           <span class="board-rank">${['🥇','🥈','🥉'][i] || (i + 1) + '.'}</span>
-          <span>答對 ${s.correct} / ${s.total} 題</span>
+          <span class="board-player" style="--pc:${s.p.color}"><span class="board-avatar">${s.p.avatar}</span>${escapeHtml(s.p.name)}</span>
+          <span class="board-detail">答對 ${s.correct} / ${s.total}</span>
           <span class="board-date">${formatDate(s.date)}</span>
           <span class="board-score">${s.score} 分</span>
         </div>`).join('');
-      if (!rows) rows = '<div class="board-empty">還沒有紀錄，快去玩一輪吧！</div>';
-      sec.innerHTML = `<h2><span>${p.avatar}</span>${escapeHtml(p.name)} 的最佳成績</h2>${rows}`;
+      sec.innerHTML = `<h2>🎯 ${total} 題排行榜</h2>${rows}`;
       el.appendChild(sec);
     }
 

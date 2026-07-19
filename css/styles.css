@@ -415,6 +415,14 @@ input { font-family: inherit; }
 }
 .board-row:last-child { border-bottom: none; }
 .board-rank { width: 44px; font-weight: 900; font-size: 1.25rem; }
+.board-player {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 800;
+  border-bottom: 4px solid var(--pc, transparent);
+  padding-bottom: 2px;
+}
+.board-avatar { font-size: 1.5rem; }
+.board-detail { color: #8a6f56; font-size: 1rem; }
 .board-date { margin-left: auto; color: #a08a6d; font-size: .95rem; }
 .board-score { font-weight: 900; color: #ff5a3c; width: 80px; text-align: right; }
 .board-empty { color: #a08a6d; padding: 8px 4px; }
