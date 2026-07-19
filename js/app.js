@@ -155,6 +155,50 @@
     renderHome();
   }
 
+  /* ===== 語音設定 ===== */
+  const RATES = [[0.8, '慢慢說 🐢'], [0.95, '正常 🙂'], [1.1, '快一點 🐇']];
+  const VOICE_SAMPLE = { zh: '你好，我是說故事的聲音！', en: 'Hello! Find the apple!' };
+
+  function renderVoiceModal() {
+    const prefs = Speech.prefs();
+
+    const rateRow = $('voice-rate');
+    rateRow.innerHTML = '';
+    for (const [rate, label] of RATES) {
+      const b = document.createElement('button');
+      b.className = 'seg-btn' + (Math.abs(prefs.rate - rate) < 0.01 ? ' selected' : '');
+      b.textContent = label;
+      b.addEventListener('click', () => {
+        Speech.savePrefs({ rate });
+        renderVoiceModal();
+        Speech.speak(VOICE_SAMPLE.zh, 'zh-TW');
+      });
+      rateRow.appendChild(b);
+    }
+
+    for (const primary of ['zh', 'en']) {
+      const listEl = $('voice-' + primary);
+      listEl.innerHTML = '';
+      const options = Speech.listVoices(primary);
+      if (!options.length) {
+        listEl.innerHTML = '<div class="board-empty">這台裝置沒有可用的語音</div>';
+        continue;
+      }
+      const entries = [{ voiceURI: null, name: '自動（系統預設）', lang: '' }, ...options];
+      for (const v of entries) {
+        const b = document.createElement('button');
+        b.className = 'type-btn voice-item' + (prefs[primary] === v.voiceURI ? ' selected' : '');
+        b.textContent = (prefs[primary] === v.voiceURI ? '✅ ' : '') + v.name + (v.lang ? `（${v.lang}）` : '');
+        b.addEventListener('click', () => {
+          Speech.savePrefs({ [primary]: v.voiceURI });
+          renderVoiceModal();
+          Speech.speak(VOICE_SAMPLE[primary], primary === 'zh' ? 'zh-TW' : 'en-US'); // 點了立刻試聽
+        });
+        listEl.appendChild(b);
+      }
+    }
+  }
+
   /* ===== 對戰設定 ===== */
   function openVersusSetup() {
     versusSelection = [];
@@ -546,6 +590,17 @@
   function bindEvents() {
     $('btn-versus').addEventListener('click', () => { Sfx.unlock(); openVersusSetup(); });
     $('btn-board').addEventListener('click', renderBoard);
+    $('btn-voice').addEventListener('click', () => {
+      Sfx.unlock();
+      renderVoiceModal();
+      $('modal-voice').classList.remove('hidden');
+      // iOS 的語音清單常在第一次 speak 後才載入，稍後重畫一次
+      setTimeout(renderVoiceModal, 600);
+    });
+    $('btn-voice-done').addEventListener('click', () => {
+      Speech.stop();
+      $('modal-voice').classList.add('hidden');
+    });
     $('btn-versus-start').addEventListener('click', () => {
       if (versusSelection.length < 2) return;
       Sfx.tap();

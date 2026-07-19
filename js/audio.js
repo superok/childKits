@@ -39,6 +39,16 @@ const Sfx = (() => {
 const Speech = (() => {
   let voices = [];
 
+  // 家長可選的語音偏好（聲音與語速），存本機
+  const PREF_KEY = 'quizkids.speech.v1';
+  const prefs = { zh: null, en: null, rate: 0.95 }; // zh/en 存 voiceURI，null = 自動
+  try { Object.assign(prefs, JSON.parse(localStorage.getItem(PREF_KEY) || '{}')); } catch (e) { /* noop */ }
+
+  function savePrefs(p) {
+    Object.assign(prefs, p);
+    try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch (e) { /* noop */ }
+  }
+
   function loadVoices() {
     try { voices = speechSynthesis.getVoices() || []; } catch (e) { voices = []; }
   }
@@ -47,18 +57,31 @@ const Speech = (() => {
     speechSynthesis.onvoiceschanged = loadVoices;
   }
 
+  const norm = v => (v.lang || '').replace('_', '-').toLowerCase();
+
+  /** 列出某語言可用的語音（zh / en） */
+  function listVoices(primary) {
+    if (!voices.length) loadVoices();
+    return voices.filter(v => norm(v).startsWith(primary));
+  }
+
   function pickVoice(lang) {
     if (!voices.length) loadVoices();
-    const norm = v => (v.lang || '').replace('_', '-').toLowerCase();
     const want = lang.toLowerCase();
     const primary = want.split('-')[0];
+    const prefURI = prefs[primary];
+    if (prefURI) {
+      const chosen = voices.find(v => v.voiceURI === prefURI);
+      if (chosen) return chosen;
+    }
     return voices.find(v => norm(v) === want)
         || voices.find(v => norm(v).startsWith(primary))
         || null;
   }
 
   /** 朗讀文字，回傳 Promise（結束或失敗都會 resolve，不會卡住流程） */
-  function speak(text, lang = 'zh-TW', rate = 0.95) {
+  function speak(text, lang = 'zh-TW', rate = null) {
+    if (rate === null) rate = prefs.rate;
     return new Promise(resolve => {
       if (!('speechSynthesis' in window) || !text) { resolve(); return; }
       let done = false;
@@ -85,5 +108,5 @@ const Speech = (() => {
     try { speechSynthesis.cancel(); } catch (e) { /* noop */ }
   }
 
-  return { speak, stop };
+  return { speak, stop, listVoices, savePrefs, prefs: () => ({ ...prefs }) };
 })();

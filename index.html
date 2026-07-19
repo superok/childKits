@@ -31,6 +31,7 @@
     <div class="home-actions">
       <button id="btn-versus" class="big-btn versus-btn">⚔️ 一起玩（輪流答題）</button>
       <button id="btn-board" class="big-btn board-btn">🏆 排行榜</button>
+      <button id="btn-voice" class="big-btn ghost-btn">🔊 語音設定</button>
     </div>
   </div>
 
@@ -122,6 +123,26 @@
       <div class="dialog-actions">
         <button id="btn-quit-stay" class="big-btn versus-btn">繼續玩</button>
         <button id="btn-quit-leave" class="big-btn ghost-btn">離開</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 語音設定 -->
+  <div id="modal-voice" class="overlay hidden">
+    <div class="dialog edit-dialog">
+      <div class="dialog-title">🔊 語音設定</div>
+
+      <label class="edit-label">語速</label>
+      <div id="voice-rate" class="seg-row"></div>
+
+      <label class="edit-label">中文語音</label>
+      <div id="voice-zh" class="voice-list"></div>
+
+      <label class="edit-label">英文語音</label>
+      <div id="voice-en" class="voice-list"></div>
+
+      <div class="dialog-actions">
+        <button id="btn-voice-done" class="big-btn versus-btn">完成</button>
       </div>
     </div>
   </div>
