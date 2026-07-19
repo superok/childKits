@@ -380,6 +380,12 @@
           s.textContent = img.emoji;
           imgEl.appendChild(s);
         }
+      } else if (img.kind === 'mixedGrid') {
+        for (const e of img.items) {
+          const s = document.createElement('span');
+          s.textContent = e;
+          imgEl.appendChild(s);
+        }
       } else if (img.kind === 'math') {
         const left = document.createElement('span');
         left.textContent = img.emoji.repeat(img.a);

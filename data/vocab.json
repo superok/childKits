@@ -39,7 +39,19 @@
     { "zh": "螞蟻", "en": "ant", "emoji": "🐜" },
     { "zh": "鸚鵡", "en": "parrot", "emoji": "🦜" },
     { "zh": "天鵝", "en": "swan", "emoji": "🦢" },
-    { "zh": "鹿", "en": "deer", "emoji": "🦌" }
+    { "zh": "鹿", "en": "deer", "emoji": "🦌" },
+    { "zh": "犀牛", "en": "rhino", "emoji": "🦏", "hard": true },
+    { "zh": "河馬", "en": "hippo", "emoji": "🦛", "hard": true },
+    { "zh": "紅鶴", "en": "flamingo", "emoji": "🦩", "hard": true },
+    { "zh": "孔雀", "en": "peacock", "emoji": "🦚", "hard": true },
+    { "zh": "蝙蝠", "en": "bat", "emoji": "🦇", "hard": true },
+    { "zh": "水獺", "en": "otter", "emoji": "🦦", "hard": true },
+    { "zh": "刺蝟", "en": "hedgehog", "emoji": "🦔", "hard": true },
+    { "zh": "浣熊", "en": "raccoon", "emoji": "🦝", "hard": true },
+    { "zh": "樹懶", "en": "sloth", "emoji": "🦥", "hard": true },
+    { "zh": "龍蝦", "en": "lobster", "emoji": "🦞", "hard": true },
+    { "zh": "蠍子", "en": "scorpion", "emoji": "🦂", "hard": true },
+    { "zh": "老鷹", "en": "eagle", "emoji": "🦅", "hard": true }
   ],
   "fruits": [
     { "zh": "蘋果", "en": "apple", "emoji": "🍎" },
@@ -77,7 +89,13 @@
     { "zh": "爆米花", "en": "popcorn", "emoji": "🍿" },
     { "zh": "起司", "en": "cheese", "emoji": "🧀" },
     { "zh": "壽司", "en": "sushi", "emoji": "🍣" },
-    { "zh": "鬆餅", "en": "waffle", "emoji": "🧇" }
+    { "zh": "鬆餅", "en": "waffle", "emoji": "🧇" },
+    { "zh": "可頌", "en": "croissant", "emoji": "🥐", "hard": true },
+    { "zh": "貝果", "en": "bagel", "emoji": "🥯", "hard": true },
+    { "zh": "椒鹽捲餅", "en": "pretzel", "emoji": "🥨", "hard": true },
+    { "zh": "餃子", "en": "dumpling", "emoji": "🥟", "hard": true },
+    { "zh": "月餅", "en": "mooncake", "emoji": "🥮", "hard": true },
+    { "zh": "捲餅", "en": "burrito", "emoji": "🌯", "hard": true }
   ],
   "vehicles": [
     { "zh": "汽車", "en": "car", "emoji": "🚗" },
@@ -95,7 +113,13 @@
     { "zh": "卡車", "en": "truck", "emoji": "🚚" },
     { "zh": "機車", "en": "motorcycle", "emoji": "🏍️" },
     { "zh": "拖拉機", "en": "tractor", "emoji": "🚜" },
-    { "zh": "纜車", "en": "cable car", "emoji": "🚡" }
+    { "zh": "纜車", "en": "cable car", "emoji": "🚡" },
+    { "zh": "帆船", "en": "sailboat", "emoji": "⛵", "hard": true },
+    { "zh": "飛碟", "en": "UFO", "emoji": "🛸", "hard": true },
+    { "zh": "滑板車", "en": "scooter", "emoji": "🛴", "hard": true },
+    { "zh": "滑板", "en": "skateboard", "emoji": "🛹", "hard": true },
+    { "zh": "雪橇", "en": "sled", "emoji": "🛷", "hard": true },
+    { "zh": "獨木舟", "en": "canoe", "emoji": "🛶", "hard": true }
   ],
   "body": [
     { "zh": "眼睛", "en": "eye", "emoji": "👀" },
@@ -123,7 +147,15 @@
     { "zh": "海浪", "en": "wave", "emoji": "🌊" },
     { "zh": "火", "en": "fire", "emoji": "🔥" },
     { "zh": "葉子", "en": "leaf", "emoji": "🍃" },
-    { "zh": "閃電", "en": "lightning", "emoji": "⚡" }
+    { "zh": "閃電", "en": "lightning", "emoji": "⚡" },
+    { "zh": "火山", "en": "volcano", "emoji": "🌋", "hard": true },
+    { "zh": "沙漠", "en": "desert", "emoji": "🏜️", "hard": true },
+    { "zh": "龍捲風", "en": "tornado", "emoji": "🌪️", "hard": true },
+    { "zh": "彗星", "en": "comet", "emoji": "☄️", "hard": true },
+    { "zh": "地球", "en": "earth", "emoji": "🌍", "hard": true },
+    { "zh": "土星", "en": "saturn", "emoji": "🪐", "hard": true },
+    { "zh": "仙人掌", "en": "cactus", "emoji": "🌵", "hard": true },
+    { "zh": "楓葉", "en": "maple leaf", "emoji": "🍁", "hard": true }
   ],
   "household": [
     { "zh": "床", "en": "bed", "emoji": "🛏️" },
@@ -139,7 +171,15 @@
     { "zh": "電視", "en": "television", "emoji": "📺" },
     { "zh": "電話", "en": "phone", "emoji": "☎️" },
     { "zh": "牙刷", "en": "toothbrush", "emoji": "🪥" },
-    { "zh": "肥皂", "en": "soap", "emoji": "🧼" }
+    { "zh": "肥皂", "en": "soap", "emoji": "🧼" },
+    { "zh": "顯微鏡", "en": "microscope", "emoji": "🔬", "hard": true },
+    { "zh": "望遠鏡", "en": "telescope", "emoji": "🔭", "hard": true },
+    { "zh": "磁鐵", "en": "magnet", "emoji": "🧲", "hard": true },
+    { "zh": "電池", "en": "battery", "emoji": "🔋", "hard": true },
+    { "zh": "指南針", "en": "compass", "emoji": "🧭", "hard": true },
+    { "zh": "溫度計", "en": "thermometer", "emoji": "🌡️", "hard": true },
+    { "zh": "燈籠", "en": "lantern", "emoji": "🏮", "hard": true },
+    { "zh": "算盤", "en": "abacus", "emoji": "🧮", "hard": true }
   ],
   "clothes": [
     { "zh": "帽子", "en": "hat", "emoji": "🧢" },

@@ -3,10 +3,20 @@ const Gen = (() => {
   let vocab = null;
   let situationBank = null;
 
+  /**
+   * 難度分級：
+   * - options：選項數
+   * - countMax / addMax / sub：數數上限、加減數字範圍、是否出減法
+   * - mixedCount：數數題混入干擾圖示的機率（要從一堆裡只數目標物）
+   * - missing / threeTerm：加減題出「填空（3+?=8）」與「三個數連加」的機率
+   * - hardWords：認知／英文題是否納入進階詞彙（vocab 裡標 hard 的詞）
+   * - sitLevel2：情境題抽到進階題（level 2）的偏好機率（0 = 完全不出）
+   */
   const DIFF = {
-    1: { label: '簡單 🌱', options: 3, countMax: 5, addMax: 5, sub: false },
-    2: { label: '中等 🌿', options: 3, countMax: 10, addMax: 10, sub: true },
-    3: { label: '挑戰 🌳', options: 4, countMax: 12, addMax: 20, sub: true },
+    1: { label: '簡單 🌱', options: 3, countMax: 5,  addMax: 5,  sub: false, mixedCount: 0,    missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0 },
+    2: { label: '中等 🌿', options: 3, countMax: 10, addMax: 10, sub: true,  mixedCount: 0,    missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0 },
+    3: { label: '挑戰 🌳', options: 4, countMax: 12, addMax: 20, sub: true,  mixedCount: 0.35, missing: 0.25, threeTerm: 0.2, hardWords: true,  sitLevel2: 0.5 },
+    4: { label: '大師 🔥', options: 4, countMax: 15, addMax: 50, sub: true,  mixedCount: 0.6,  missing: 0.35, threeTerm: 0.3, hardWords: true,  sitLevel2: 0.75 },
   };
 
   const TYPE_INFO = {
@@ -83,7 +93,7 @@ const Gen = (() => {
 
   function genCognition(diff, used) {
     const cat = pick(cogCats);
-    const pool = vocab[cat];
+    const pool = wordPool(cat, diff);
     const fresh = pool.filter(it => !used.has(`cog:${cat}:${it.en}`));
     if (!fresh.length) return null;
     const target = pick(fresh);
@@ -138,23 +148,42 @@ const Gen = (() => {
     };
   }
 
+  // 依難度取詞：進階詞（hard: true）只在高難度出現
+  const wordPool = (cat, diff) => vocab[cat].filter(it => diff.hardWords || !it.hard);
+
   // 這些詞的 emoji 一張圖就是一堆（一串葡萄、一把薯條、兩顆櫻桃），不能拿來數數
   const NOT_COUNTABLE = new Set(['grapes', 'blueberry', 'cherry', 'fries', 'popcorn', 'noodles', 'rice', 'milk', 'sushi']);
-  const countablePool = cat => vocab[cat].filter(it => !NOT_COUNTABLE.has(it.en));
+  const countablePool = (cat, diff) => wordPool(cat, diff).filter(it => !NOT_COUNTABLE.has(it.en));
 
   function genCounting(diff, used) {
     const cat = pick(COUNT_CATS);
-    const item = pick(countablePool(cat));
+    const pool = countablePool(cat, diff);
+    const item = pick(pool);
     const n = 1 + rand(diff.countMax);
     const sig = `count:${item.en}:${n}`;
     if (used.has(sig)) return null;
     used.add(sig);
     const m = MEASURE[cat] || '個';
+
+    // 高難度：混入別種圖示當干擾，小孩要從一堆裡只數目標物
+    let image = { kind: 'grid', emoji: item.emoji, count: n };
+    if (diff.mixedCount && n >= 3 && Math.random() < diff.mixedCount) {
+      const other = pick(pool.filter(it => it !== item && it.emoji !== item.emoji));
+      if (other) {
+        const extra = 2 + rand(Math.min(6, n));
+        image = {
+          kind: 'mixedGrid',
+          target: item.emoji,
+          items: shuffle([...Array(n).fill(item.emoji), ...Array(extra).fill(other.emoji)]),
+        };
+      }
+    }
+
     return {
       type: 'counting',
       prompt: `數一數，有幾${m}${item.zh}？`,
       speech: { text: `數一數，圖裡有幾${m}${item.zh}？`, lang: 'zh-TW' },
-      image: { kind: 'grid', emoji: item.emoji, count: n },
+      image,
       options: numberOptions(n, diff.options, 1, diff.countMax + 3),
       correctLabel: `${n}`,
       explanation: null,
@@ -162,30 +191,66 @@ const Gen = (() => {
   }
 
   function genArithmetic(diff, used) {
-    const isSub = diff.sub && Math.random() < 0.4;
-    let a, b, answer, opChar, opWord;
-    if (isSub) {
-      a = 2 + rand(diff.addMax - 1);
-      b = 1 + rand(a - 1);
-      answer = a - b;
-      opChar = '−'; opWord = '減';
+    const r = Math.random();
+    const variant = r < diff.threeTerm ? 'three'
+      : r < diff.threeTerm + diff.missing ? 'missing'
+      : 'standard';
+
+    let prompt, speechText, answer, sig, image = null;
+
+    if (variant === 'three') {
+      // 三個數連加（例：2 + 5 + 3 = ?）
+      const m = Math.max(3, Math.floor(diff.addMax / 3));
+      const a = 1 + rand(m), b = 1 + rand(m), c = 1 + rand(m);
+      answer = a + b + c;
+      prompt = `${a} + ${b} + ${c} = ?`;
+      speechText = `${a}，加${b}，加${c}，等於多少？`;
+      sig = `math:3t:${a}+${b}+${c}`;
+    } else if (variant === 'missing') {
+      // 填空（例：3 + ? = 8、9 − ? = 4）
+      if (diff.sub && Math.random() < 0.4) {
+        const a = 2 + rand(diff.addMax - 1);
+        answer = 1 + rand(a - 1);
+        const d = a - answer;
+        prompt = `${a} − ? = ${d}`;
+        speechText = `${a}，減多少，會等於${d}？`;
+        sig = `math:m:${a}-?=${d}`;
+      } else {
+        answer = 1 + rand(diff.addMax - 1);
+        const a = 1 + rand(diff.addMax - answer);
+        prompt = `${a} + ? = ${a + answer}`;
+        speechText = `${a}，加多少，會等於${a + answer}？`;
+        sig = `math:m:${a}+?=${a + answer}`;
+      }
     } else {
-      a = 1 + rand(diff.addMax - 1);
-      b = 1 + rand(diff.addMax - a);
-      answer = a + b;
-      opChar = '+'; opWord = '加';
+      const isSub = diff.sub && Math.random() < 0.4;
+      let a, b, opChar, opWord;
+      if (isSub) {
+        a = 2 + rand(diff.addMax - 1);
+        b = 1 + rand(a - 1);
+        answer = a - b;
+        opChar = '−'; opWord = '減';
+      } else {
+        a = 1 + rand(diff.addMax - 1);
+        b = 1 + rand(diff.addMax - a);
+        answer = a + b;
+        opChar = '+'; opWord = '加';
+      }
+      prompt = `${a} ${opChar} ${b} = ?`;
+      speechText = `${a}，${opWord}${b}，等於多少？`;
+      sig = `math:${a}${opChar}${b}`;
+      if (a <= 6 && b <= 6) {
+        const item = pick(countablePool('fruits', diff));
+        image = { kind: 'math', emoji: item.emoji, a, b, op: opChar };
+      }
     }
-    const sig = `math:${a}${opChar}${b}`;
+
     if (used.has(sig)) return null;
     used.add(sig);
-    const item = pick(countablePool('fruits'));
-    const image = (a <= 6 && b <= 6)
-      ? { kind: 'math', emoji: item.emoji, a, b, op: opChar }
-      : null;
     return {
       type: 'arithmetic',
-      prompt: `${a} ${opChar} ${b} = ?`,
-      speech: { text: `${a}，${opWord}${b}，等於多少？`, lang: 'zh-TW' },
+      prompt,
+      speech: { text: speechText, lang: 'zh-TW' },
       image,
       options: numberOptions(answer, diff.options, 0, diff.addMax + 5),
       correctLabel: `${answer}`,
@@ -195,7 +260,7 @@ const Gen = (() => {
 
   function genEnglish(diff, used) {
     const cat = pick(cogCats);
-    const pool = vocab[cat];
+    const pool = wordPool(cat, diff);
     const fresh = pool.filter(it => !used.has(`en:${it.en}`));
     if (!fresh.length) return null;
     const target = pick(fresh);
@@ -213,8 +278,15 @@ const Gen = (() => {
   }
 
   function genSituation(diff, used) {
-    const fresh = situationBank.questions.filter(q => !used.has(`sit:${q.id}`));
+    const lvl = q => q.level || 1;
+    // 低難度只出基本題；高難度依機率偏好進階題（level 2）
+    const pool = situationBank.questions.filter(q => diff.sitLevel2 > 0 || lvl(q) === 1);
+    let fresh = pool.filter(q => !used.has(`sit:${q.id}`));
     if (!fresh.length) return null;
+    if (diff.sitLevel2 > 0 && Math.random() < diff.sitLevel2) {
+      const hard = fresh.filter(q => lvl(q) === 2);
+      if (hard.length) fresh = hard;
+    }
     const q = pick(fresh);
     used.add(`sit:${q.id}`);
     const options = shuffle(q.options.map(o => ({
