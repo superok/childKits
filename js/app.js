@@ -2,6 +2,8 @@
 (() => {
   const $ = id => document.getElementById(id);
 
+  const APP_VERSION = 'v8';
+
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
   const CAT_ICONS = { cognition: '🐶', colors: '🎨', shapes: '🔺', counting: '🔢', arithmetic: '➕', english: '🔤', situations: '🚸' };
@@ -647,6 +649,7 @@
 
   /* ===== 啟動 ===== */
   async function init() {
+    $('app-version').textContent = APP_VERSION;
     bindEvents();
     try {
       const [vocab, situations] = await Promise.all([
