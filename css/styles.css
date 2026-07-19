@@ -24,6 +24,7 @@ input { font-family: inherit; }
 /* ===== 畫面切換 ===== */
 .screen {
   display: none;
+  height: 100vh;
   height: 100dvh;
   overflow: hidden;
   flex-direction: column;
@@ -160,6 +161,7 @@ input { font-family: inherit; }
   border: 4px solid #e8dcc8;
   border-radius: 26px;
   box-shadow: 0 5px 0 rgba(0,0,0,.08);
+  min-height: clamp(110px, 17vh, 150px);
   min-height: clamp(110px, 17dvh, 150px);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   padding: 16px 10px;
@@ -227,10 +229,12 @@ input { font-family: inherit; }
 
 .q-image {
   min-height: 0;
+  max-height: 24vh;
   max-height: 24dvh;
   overflow: hidden;
   display: flex; flex-wrap: wrap; gap: 8px;
   align-items: center; justify-content: center;
+  font-size: clamp(2rem, 6vh, 4rem);
   font-size: clamp(2rem, 6dvh, 4rem);
   margin: 6px 0;
   max-width: 800px;
@@ -259,6 +263,7 @@ input { font-family: inherit; }
   border-radius: 28px;
   border: 4px solid #e8dcc8;
   box-shadow: 0 5px 0 rgba(0,0,0,.08);
+  min-height: clamp(120px, 22vh, 180px);
   min-height: clamp(120px, 22dvh, 180px);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 10px;
@@ -277,6 +282,7 @@ input { font-family: inherit; }
 
 .q-options.text-mode .opt-btn {
   flex-direction: row; justify-content: flex-start;
+  min-height: clamp(78px, 10vh, 110px);
   min-height: clamp(78px, 10dvh, 110px); font-size: 1.7rem; text-align: left;
 }
 .q-options.text-mode .opt-btn .opt-emoji { font-size: 2.8rem; }
@@ -304,14 +310,16 @@ input { font-family: inherit; }
 
 /* ===== 過場與對話框 ===== */
 .overlay {
-  position: fixed; inset: 0; z-index: 50;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 50;
   background: rgba(58,46,42,.55);
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: flex-start; justify-content: center;
   padding: 24px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 #overlay-turn { background: var(--pc, #ffb703); animation: fadein .3s; }
-.turn-card { text-align: center; color: #fff; }
+.turn-card { margin: auto; text-align: center; color: #fff; }
 .turn-avatar {
   width: 215px; height: 215px; margin: 0 auto 26px;
   border-radius: 50%; background: rgba(255,255,255,.3);
@@ -322,10 +330,11 @@ input { font-family: inherit; }
 .turn-text { font-size: 3.2rem; font-weight: 900; margin-bottom: 36px; text-shadow: 0 3px 0 rgba(0,0,0,.15); }
 
 .dialog {
+  margin: auto; /* 空間夠時置中；內容過高時貼頂可捲動 */
   background: #fff; border-radius: 28px;
   padding: 28px 26px; max-width: 460px; width: 100%;
   text-align: center;
-  max-height: 90dvh; overflow-y: auto;
+  max-height: 88vh; max-height: 88dvh; overflow-y: auto;
 }
 .dialog-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
 .dialog-sub { color: #8a6f56; margin-bottom: 18px; }
@@ -367,7 +376,7 @@ input { font-family: inherit; }
 /* ===== 語音設定 ===== */
 .voice-list {
   display: flex; flex-direction: column; gap: 8px;
-  max-height: 24dvh; overflow-y: auto;
+  max-height: 180px; overflow-y: auto;
 }
 .voice-item { text-align: left; font-size: 1.05rem; }
 
