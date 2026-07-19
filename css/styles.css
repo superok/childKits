@@ -206,6 +206,7 @@ input { font-family: inherit; }
 
 .player-chip {
   display: flex; align-items: center; gap: 10px;
+  white-space: nowrap;
   background: rgba(255,255,255,.25);
   padding: 6px 16px 6px 8px; border-radius: 999px;
   font-size: 1.3rem; font-weight: 800;
@@ -225,15 +226,12 @@ input { font-family: inherit; }
 .quiz-main {
   flex: 1; width: 100%; max-width: 1000px;
   display: flex; flex-direction: column; align-items: center;
-  min-height: 0; overflow: hidden;
+  min-height: 0; overflow-y: auto;
   padding: 12px 24px 190px; /* 底部留空間給固定的回饋列（回饋列高度以內） */
 }
 
 .q-image {
-  min-height: 0;
-  max-height: 24vh;
-  max-height: 24dvh;
-  overflow: hidden;
+  flex-shrink: 0;
   display: flex; flex-wrap: wrap; gap: 8px;
   align-items: center; justify-content: center;
   font-size: clamp(2rem, 6vh, 4rem);
@@ -241,9 +239,10 @@ input { font-family: inherit; }
   margin: 6px 0;
   max-width: 800px;
 }
+.q-image.many { font-size: clamp(1.5rem, 4.5vh, 2.6rem); }
 .q-image .math-op { font-size: .7em; color: #8a6f56; margin: 0 10px; }
 
-.q-prompt-row { display: flex; align-items: center; gap: 16px; margin: 8px 0 20px; }
+.q-prompt-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 16px; margin: 8px 0 16px; }
 .q-prompt {
   font-size: clamp(1.7rem, 4vw, 2.6rem);
   font-weight: 800; text-align: center;
@@ -455,16 +454,26 @@ input { font-family: inherit; }
   .profile-card.add-card { min-height: 180px; font-size: 1.1rem; }
   .add-plus { font-size: 3rem; }
 
-  .quiz-main { padding-bottom: 170px; }
-  .q-options { grid-template-columns: 1fr 1fr; gap: 14px; }
-  .opt-btn { min-height: 130px; font-size: 1.3rem; padding: 12px; }
-  .opt-btn .opt-emoji { font-size: 3.6rem; }
-  .opt-btn .opt-num { font-size: 3rem; }
-  .opt-btn .opt-swatch, .opt-btn svg { width: 100px; height: 100px; }
-  .q-options.text-mode .opt-btn { min-height: 90px; font-size: 1.3rem; }
-  .q-options.text-mode .opt-btn .opt-emoji { font-size: 2.2rem; }
+  .quiz-main { padding-bottom: 160px; }
+  .q-prompt { font-size: 1.35rem; }
+  .q-image { font-size: 2.2rem; gap: 5px; }
+  .q-image.many { font-size: 1.45rem; }
+  .q-options { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .opt-btn { min-height: 110px; font-size: 1.25rem; padding: 10px; }
+  .opt-btn .opt-emoji { font-size: 3.2rem; }
+  .opt-btn .opt-num { font-size: 2.6rem; }
+  .opt-btn .opt-swatch, .opt-btn svg { width: 88px; height: 88px; }
+  .q-options.text-mode .opt-btn { min-height: 68px; font-size: 1.2rem; }
+  .q-options.text-mode .opt-btn .opt-emoji { font-size: 1.9rem; }
+  .feedback-emoji { font-size: 2rem; }
+  .feedback-text { font-size: 1.25rem; }
+  .feedback-explain { font-size: 1.05rem; }
+  .next-btn { font-size: 1.4rem; padding: 12px 30px; }
 
   .icon-btn { width: 60px; height: 60px; font-size: 1.6rem; }
+  .player-chip { font-size: 1.05rem; gap: 6px; padding: 5px 12px 5px 6px; }
+  .chip-avatar { font-size: 1.4rem; }
+  .quiz-progress { font-size: 1rem; }
   .big-btn { font-size: 1.3rem; padding: 16px 26px; }
   .next-btn, .turn-go-btn { font-size: 1.5rem; }
 

@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v8';
+  const APP_VERSION = 'v9';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -370,7 +370,11 @@
     // 圖像區
     const imgEl = $('q-image');
     imgEl.innerHTML = '';
+    imgEl.classList.remove('many');
     const img = question.image;
+    // 圖示很多時縮小尺寸，確保全部看得到（數數題不能有圖被裁掉）
+    const itemCount = img ? (img.kind === 'grid' ? img.count : img.kind === 'mixedGrid' ? img.items.length : 0) : 0;
+    if (itemCount > 12) imgEl.classList.add('many');
     if (img) {
       if (img.kind === 'emoji') {
         imgEl.textContent = img.value;
