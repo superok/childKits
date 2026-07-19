@@ -306,9 +306,13 @@ input { font-family: inherit; }
   padding: 12px 22px calc(12px + env(safe-area-inset-bottom));
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
   gap: 8px 20px;
-  max-height: 188px; overflow: hidden;
+  max-height: 46vh;
+  max-height: 46dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   animation: slideup .25s;
 }
+.feedback .next-btn { flex-shrink: 0; }
 .feedback-emoji { font-size: 2.8rem; }
 .feedback-text { font-size: 1.6rem; font-weight: 800; }
 .feedback-explain { width: 100%; text-align: center; font-size: 1.25rem; color: #8a6f56; }
