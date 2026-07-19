@@ -178,10 +178,25 @@
       rateRow.appendChild(b);
     }
 
+    const REGION = {
+      'zh-tw': '台灣 🇹🇼', 'zh-cn': '中國', 'zh-hk': '香港粵語',
+      'en-us': '美式', 'en-gb': '英式', 'en-au': '澳洲', 'en-in': '印度', 'en-ie': '愛爾蘭', 'en-za': '南非',
+    };
+    const regionOf = v => {
+      const lang = (v.lang || '').replace('_', '-').toLowerCase();
+      return REGION[lang] || v.lang || '';
+    };
+
     for (const primary of ['zh', 'en']) {
       const listEl = $('voice-' + primary);
       listEl.innerHTML = '';
-      const options = Speech.listVoices(primary);
+      // 台灣國語（zh-TW）／美式英文排最前面，方便挑
+      const preferred = primary === 'zh' ? 'zh-tw' : 'en-us';
+      const options = Speech.listVoices(primary).sort((a, b) => {
+        const al = (a.lang || '').replace('_', '-').toLowerCase() === preferred ? 0 : 1;
+        const bl = (b.lang || '').replace('_', '-').toLowerCase() === preferred ? 0 : 1;
+        return al - bl || a.name.localeCompare(b.name);
+      });
       if (!options.length) {
         listEl.innerHTML = '<div class="board-empty">這台裝置沒有可用的語音</div>';
         continue;
@@ -190,7 +205,8 @@
       for (const v of entries) {
         const b = document.createElement('button');
         b.className = 'type-btn voice-item' + (prefs[primary] === v.voiceURI ? ' selected' : '');
-        b.textContent = (prefs[primary] === v.voiceURI ? '✅ ' : '') + v.name + (v.lang ? `（${v.lang}）` : '');
+        const region = v.voiceURI === null ? '' : regionOf(v);
+        b.textContent = (prefs[primary] === v.voiceURI ? '✅ ' : '') + v.name + (region ? `（${region}）` : '');
         b.addEventListener('click', () => {
           Speech.savePrefs({ [primary]: v.voiceURI });
           renderVoiceModal();
