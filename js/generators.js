@@ -40,10 +40,12 @@ const Gen = (() => {
   };
 
   let cogCats = [];
+  let maxGridItems = 26; // 數數圖示總數上限（小螢幕由 app 降到 12，換取大圖示）
 
-  function init(vocabData, situationsData) {
+  function init(vocabData, situationsData, opts = {}) {
     vocab = vocabData;
     situationBank = situationsData;
+    if (opts.maxGridItems) maxGridItems = opts.maxGridItems;
     // 詞彙庫實際有的類別才拿來出題（類別要夠 4 個詞才夠出干擾項）
     cogCats = COG_CATS_PREF.filter(c => Array.isArray(vocab[c]) && vocab[c].length >= 4);
   }
@@ -159,7 +161,7 @@ const Gen = (() => {
     const cat = pick(COUNT_CATS);
     const pool = countablePool(cat, diff);
     const item = pick(pool);
-    const n = 1 + rand(diff.countMax);
+    const n = 1 + rand(Math.min(diff.countMax, maxGridItems));
     const sig = `count:${item.en}:${n}`;
     if (used.has(sig)) return null;
     used.add(sig);
@@ -167,10 +169,11 @@ const Gen = (() => {
 
     // 高難度：混入別種圖示當干擾，小孩要從一堆裡只數目標物
     let image = { kind: 'grid', emoji: item.emoji, count: n };
-    if (diff.mixedCount && n >= 3 && Math.random() < diff.mixedCount) {
+    const room = maxGridItems - n;
+    if (diff.mixedCount && n >= 3 && room >= 2 && Math.random() < diff.mixedCount) {
       const other = pick(pool.filter(it => it !== item && it.emoji !== item.emoji));
       if (other) {
-        const extra = 2 + rand(Math.min(6, n));
+        const extra = Math.min(2 + rand(Math.min(6, n)), room);
         image = {
           kind: 'mixedGrid',
           target: item.emoji,

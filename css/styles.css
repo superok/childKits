@@ -456,8 +456,8 @@ input { font-family: inherit; }
 
   .quiz-main { padding-bottom: 160px; }
   .q-prompt { font-size: 1.35rem; }
-  .q-image { font-size: 2.8rem; gap: 6px; }
-  .q-image.many { font-size: 2.1rem; }
+  .q-image { font-size: 3.4rem; gap: 7px; }
+  .q-image.many { font-size: 2.8rem; }
   .q-options { grid-template-columns: 1fr 1fr; gap: 12px; }
   .opt-btn { min-height: 110px; font-size: 1.25rem; padding: 10px; }
   .opt-btn .opt-emoji { font-size: 3.2rem; }

@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v10';
+  const APP_VERSION = 'v11';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -700,7 +700,9 @@
         fetch('data/vocab.json').then(r => r.json()),
         fetch('data/situations.json').then(r => r.json()),
       ]);
-      Gen.init(vocab, situations);
+      // 手機（短邊 < 600px）限制數數圖示總數，讓每個圖示維持大尺寸
+      const isSmallDevice = Math.min(window.screen.width, window.screen.height) < 600;
+      Gen.init(vocab, situations, { maxGridItems: isSmallDevice ? 12 : 26 });
     } catch (e) {
       $('screen-loading').querySelector('.loading-box').innerHTML =
         '<div class="loading-emoji">😢</div><div>題庫載入失敗。<br>請用網頁伺服器開啟（不能直接開檔案），<br>或檢查網路後重新整理。</div>';
