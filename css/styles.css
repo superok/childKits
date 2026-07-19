@@ -239,7 +239,7 @@ input { font-family: inherit; }
   margin: 6px 0;
   max-width: 800px;
 }
-.q-image.many { font-size: clamp(1.5rem, 4.5vh, 2.6rem); }
+.q-image.many { font-size: clamp(1.8rem, 5vh, 3rem); }
 .q-image .math-op { font-size: .7em; color: #8a6f56; margin: 0 10px; }
 
 .q-prompt-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 16px; margin: 8px 0 16px; }
@@ -456,8 +456,8 @@ input { font-family: inherit; }
 
   .quiz-main { padding-bottom: 160px; }
   .q-prompt { font-size: 1.35rem; }
-  .q-image { font-size: 2.2rem; gap: 5px; }
-  .q-image.many { font-size: 1.45rem; }
+  .q-image { font-size: 2.8rem; gap: 6px; }
+  .q-image.many { font-size: 2.1rem; }
   .q-options { grid-template-columns: 1fr 1fr; gap: 12px; }
   .opt-btn { min-height: 110px; font-size: 1.25rem; padding: 10px; }
   .opt-btn .opt-emoji { font-size: 3.2rem; }
