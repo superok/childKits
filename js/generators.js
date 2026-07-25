@@ -109,6 +109,8 @@ const Gen = (() => {
       image: null,
       options: shuffle([target, ...others].map(it => ({ kind: 'emoji', emoji: it.emoji, correct: it === target }))),
       correctLabel: target.zh,
+      audioSeq: [A.wordQ(cat, target)],
+      answerAudio: A.wordW(cat, target),
       explanation: null,
     };
   }
@@ -127,6 +129,8 @@ const Gen = (() => {
       image: null,
       options: shuffle([target, ...others].map(c => ({ kind: 'color', hex: c.hex, correct: c === target }))),
       correctLabel: target.zh,
+      audioSeq: [A.wordQ('colors', target)],
+      answerAudio: A.wordW('colors', target),
       explanation: null,
     };
   }
@@ -146,9 +150,23 @@ const Gen = (() => {
       image: null,
       options: shuffle([target, ...others].map(sh => ({ kind: 'shape', svg: shapeSVG(sh.svg, color), correct: sh === target }))),
       correctLabel: target.zh,
+      audioSeq: [A.wordQ('shapes', target)],
+      answerAudio: A.wordW('shapes', target),
       explanation: null,
     };
   }
+
+  /* ===== 預錄音檔路徑 ===== */
+  const wordKey = (cat, item) => `${cat}-${item.en.replace(/ /g, '_')}`;
+  const A = {
+    wordQ: (cat, it) => `audio/word/${wordKey(cat, it)}-q.mp3`,   // 哪一個是X？
+    wordW: (cat, it) => `audio/word/${wordKey(cat, it)}-w.mp3`,   // X（單念）
+    wordEQ: (cat, it) => `audio/word/${wordKey(cat, it)}-eq.mp3`, // Find the X!
+    wordEW: (cat, it) => `audio/word/${wordKey(cat, it)}-ew.mp3`, // X（英文單念）
+    count: (cat, it) => `audio/count/${wordKey(cat, it)}.mp3`,
+    num: n => `audio/num/${n}.mp3`,
+    frag: name => `audio/frag/${name}.mp3`,
+  };
 
   // 依難度取詞：進階詞（hard: true）只在高難度出現
   const wordPool = (cat, diff) => vocab[cat].filter(it => diff.hardWords || !it.hard);
@@ -189,6 +207,8 @@ const Gen = (() => {
       image,
       options: numberOptions(n, diff.options, 1, diff.countMax + 3),
       correctLabel: `${n}`,
+      audioSeq: [A.count(cat, item)],
+      answerAudio: A.num(n),
       explanation: null,
     };
   }
@@ -199,7 +219,7 @@ const Gen = (() => {
       : r < diff.threeTerm + diff.missing ? 'missing'
       : 'standard';
 
-    let prompt, speechText, answer, sig, image = null;
+    let prompt, speechText, answer, sig, audioSeq, image = null;
 
     if (variant === 'three') {
       // 三個數連加（例：2 + 5 + 3 = ?）
@@ -209,6 +229,7 @@ const Gen = (() => {
       prompt = `${a} + ${b} + ${c} = ?`;
       speechText = `${a}，加${b}，加${c}，等於多少？`;
       sig = `math:3t:${a}+${b}+${c}`;
+      audioSeq = [A.num(a), A.frag('plus'), A.num(b), A.frag('plus'), A.num(c), A.frag('equals-what')];
     } else if (variant === 'missing') {
       // 填空（例：3 + ? = 8、9 − ? = 4）
       if (diff.sub && Math.random() < 0.4) {
@@ -218,12 +239,14 @@ const Gen = (() => {
         prompt = `${a} − ? = ${d}`;
         speechText = `${a}，減多少，會等於${d}？`;
         sig = `math:m:${a}-?=${d}`;
+        audioSeq = [A.num(a), A.frag('minus-what-equals'), A.num(d)];
       } else {
         answer = 1 + rand(diff.addMax - 1);
         const a = 1 + rand(diff.addMax - answer);
         prompt = `${a} + ? = ${a + answer}`;
         speechText = `${a}，加多少，會等於${a + answer}？`;
         sig = `math:m:${a}+?=${a + answer}`;
+        audioSeq = [A.num(a), A.frag('plus-what-equals'), A.num(a + answer)];
       }
     } else {
       const isSub = diff.sub && Math.random() < 0.4;
@@ -242,6 +265,7 @@ const Gen = (() => {
       prompt = `${a} ${opChar} ${b} = ?`;
       speechText = `${a}，${opWord}${b}，等於多少？`;
       sig = `math:${a}${opChar}${b}`;
+      audioSeq = [A.num(a), A.frag(isSub ? 'minus' : 'plus'), A.num(b), A.frag('equals-what')];
       if (a <= 6 && b <= 6) {
         const item = pick(countablePool('fruits', diff));
         image = { kind: 'math', emoji: item.emoji, a, b, op: opChar };
@@ -257,6 +281,8 @@ const Gen = (() => {
       image,
       options: numberOptions(answer, diff.options, 0, diff.addMax + 5),
       correctLabel: `${answer}`,
+      audioSeq,
+      answerAudio: A.num(answer),
       explanation: null,
     };
   }
@@ -276,6 +302,8 @@ const Gen = (() => {
       image: null,
       options: shuffle([target, ...others].map(it => ({ kind: 'emoji', emoji: it.emoji, correct: it === target }))),
       correctLabel: target.en,
+      audioSeq: [A.wordEQ(cat, target)],
+      answerAudio: A.wordEW(cat, target),
       explanation: null,
     };
   }
@@ -297,14 +325,17 @@ const Gen = (() => {
       kind: 'text', label: o.text, emoji: o.emoji || '', correct: !!o.correct, origIdx: i,
     })));
     const optionSpeech = options.map(o => o.label).join('，還是');
+    const correct = options.find(o => o.correct);
     return {
       type: 'situations',
       prompt: q.question,
       speech: { text: `${q.question.replace(/？$/, '')}？${optionSpeech}？`, lang: 'zh-TW' },
-      audioId: q.id,
       image: q.image ? { kind: 'emoji', value: q.image } : null,
       options,
-      correctLabel: q.options.find(o => o.correct).text,
+      correctLabel: correct.label,
+      audioSeq: [`audio/sit/${q.id}-q.mp3`, ...options.map(o => `audio/sit/${q.id}-o${o.origIdx}.mp3`)],
+      answerAudio: `audio/sit/${q.id}-o${correct.origIdx}.mp3`,
+      explainAudio: `audio/sit/${q.id}-e.mp3`,
       explanation: q.explanation || null,
     };
   }

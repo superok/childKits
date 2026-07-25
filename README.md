@@ -31,8 +31,41 @@ python3 -m http.server 8000
 
 ## 資料檔
 
-- `data/situations.json` — 情境題庫（50 題），格式與加題方式見 `data/README.md`
+- `data/situations.json` — 情境題庫，格式與加題方式見 `data/README.md`
 - `data/vocab.json` — 認知／英文題的詞彙庫（中文、英文、emoji）
+
+## 語音架構
+
+題目與回饋用**預錄音檔**（微軟神經網路語音：中文 `zh-TW-HsiaoChenNeural`、英文
+`en-US-AnaNeural`，語速 -10%），音質遠優於裝置內建 TTS：
+
+| 目錄 | 內容 |
+|---|---|
+| `audio/sit/` | 情境題的題目、每個選項、答錯解釋 |
+| `audio/word/` | 詞彙：`{類別}-{英文}-q` 哪一個是X？、`-w` X單念、`-eq` Find the X!、`-ew` X英文單念 |
+| `audio/count/` | 數數題：「數一數，圖裡有幾X？」 |
+| `audio/num/` | 數字 0~55 單念（加減題拼接用） |
+| `audio/frag/` | 「加」「減」「等於多少？」等片段 |
+| `audio/common/` | 稱讚語、「答錯了喔，正確答案是」 |
+| `audio/manifest.json` | 所有音檔清單，app 靠它判斷哪些音檔可用 |
+
+- 檔名帶**類別前綴**是必要的：`orange` 同時是水果和顏色、`star` 同時是自然和形狀。
+- 產生器每題會吐出 `audioSeq`（依畫面上的選項順序）、`answerAudio`、`explainAudio`；
+  播放前檢查音檔是否齊全，**任何一段缺失或播放失敗就整題退回裝置 TTS**，不會靜默卡住。
+- **玩家名字無法預錄**，所以「換○○囉！」「恭喜○○獲勝」仍用裝置 TTS；首頁的
+  「🔊 語音設定」就是在調這部分（可選聲音與語速，也可為英文名指定中文唸法）。
+- 音檔採「快取優先」，每段只下載一次，之後離線可用。
+
+### 重新生成音檔
+
+改過題庫或詞彙庫後：
+
+```bash
+python3 tools/generate_audio.py        # 情境題
+python3 tools/generate_audio_words.py  # 詞彙、數字、片段
+```
+
+兩個腳本都會跳過已存在的檔案，只補新的。
 
 ## 專案結構
 

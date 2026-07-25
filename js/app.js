@@ -40,20 +40,17 @@
     AudioBank.stop();
   }
 
-  /** 唸出題目：情境題優先用預錄音檔（題目＋依畫面順序的選項），失敗退回裝置 TTS */
+  /** 這一題有沒有完整的預錄音檔可用 */
+  const hasQuestionAudio = q => !!q.audioSeq && AudioBank.hasAll(q.audioSeq);
+
+  /** 唸出題目：優先用預錄音檔（依畫面上的選項順序），失敗退回裝置 TTS */
   function speakQuestion(question) {
     stopAllAudio();
-    if (question.audioId) {
-      const paths = [
-        `audio/sit/${question.audioId}-q.mp3`,
-        ...question.options.map(o => `audio/sit/${question.audioId}-o${o.origIdx}.mp3`),
-      ];
-      if (AudioBank.hasAll(paths)) {
-        AudioBank.playSeq(paths).then(ok => {
-          if (!ok) Speech.speak(question.speech.text, question.speech.lang);
-        });
-        return;
-      }
+    if (hasQuestionAudio(question)) {
+      AudioBank.playSeq(question.audioSeq).then(ok => {
+        if (!ok) Speech.speak(question.speech.text, question.speech.lang);
+      });
+      return;
     }
     Speech.speak(question.speech.text, question.speech.lang);
   }
@@ -492,7 +489,7 @@
       const praiseIdx = Math.floor(Math.random() * PRAISES.length);
       fbText = speechText = PRAISES[praiseIdx];
       const praisePath = `audio/common/praise-${praiseIdx}.mp3`;
-      if (AudioBank.has(praisePath)) audioPaths = [praisePath];
+      if (hasQuestionAudio(question) && AudioBank.has(praisePath)) audioPaths = [praisePath];
       $('feedback-explain').textContent = '';
     } else {
       btn.classList.add('wrong');
@@ -506,13 +503,9 @@
       fbText = `正確答案是「${question.correctLabel}」`;
       speechText = `答錯了喔，正確答案是，${question.correctLabel}。${question.explanation || ''}`;
       $('feedback-explain').textContent = question.explanation || '';
-      if (question.audioId) {
-        const correctOpt = question.options.find(o => o.correct);
-        const paths = [
-          'audio/common/wrong-intro.mp3',
-          `audio/sit/${question.audioId}-o${correctOpt.origIdx}.mp3`,
-          `audio/sit/${question.audioId}-e.mp3`,
-        ];
+      if (question.answerAudio) {
+        const paths = ['audio/common/wrong-intro.mp3', question.answerAudio];
+        if (question.explainAudio) paths.push(question.explainAudio);
         if (AudioBank.hasAll(paths)) audioPaths = paths;
       }
     }
@@ -600,7 +593,11 @@
       Sfx.fanfare();
       confetti();
       stopAllAudio();
-      if (isTie) Speech.speak('平手！大家都好棒！');
+      if (isTie) {
+        const tie = 'audio/frag/tie.mp3';
+        if (AudioBank.has(tie)) AudioBank.playSeq([tie]).then(ok => { if (!ok) Speech.speak('平手！大家都好棒！'); });
+        else Speech.speak('平手！大家都好棒！');
+      }
       else Speech.speakSeq(nameSegments(winners[0].p, '恭喜', '獲勝！'));
     }
 
