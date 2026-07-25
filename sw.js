@@ -1,5 +1,5 @@
 /* 離線快取：安裝時預快取所有資源，之後網路優先、離線退回快取 */
-const CACHE = 'quizkids-v13';
+const CACHE = 'quizkids-v14';
 const ASSETS = [
   './',
   './index.html',
@@ -29,6 +29,21 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+
+  // 預錄音檔內容不變：快取優先，播過一次就不再下載
+  if (e.request.url.includes('/audio/')) {
+    e.respondWith(
+      caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, copy));
+        }
+        return res;
+      }))
+    );
+    return;
+  }
+
   e.respondWith(
     fetch(e.request)
       .then(res => {

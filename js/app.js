@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v13';
+  const APP_VERSION = 'v14';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -17,6 +17,29 @@
   let editingId = null;      // 編輯中的玩家 id（null = 新增）
   let editState = null;
   let setup = null;          // 選題設定 {mode, profileIds, category, count}
+
+  function stopAllAudio() {
+    Speech.stop();
+    AudioBank.stop();
+  }
+
+  /** 唸出題目：情境題優先用預錄音檔（題目＋依畫面順序的選項），失敗退回裝置 TTS */
+  function speakQuestion(question) {
+    stopAllAudio();
+    if (question.audioId) {
+      const paths = [
+        `audio/sit/${question.audioId}-q.mp3`,
+        ...question.options.map(o => `audio/sit/${question.audioId}-o${o.origIdx}.mp3`),
+      ];
+      if (AudioBank.hasAll(paths)) {
+        AudioBank.playSeq(paths).then(ok => {
+          if (!ok) Speech.speak(question.speech.text, question.speech.lang);
+        });
+        return;
+      }
+    }
+    Speech.speak(question.speech.text, question.speech.lang);
+  }
 
   /* ===== 畫面切換 ===== */
   function showScreen(id) {
@@ -66,7 +89,7 @@
   }
 
   function goHome() {
-    Speech.stop();
+    stopAllAudio();
     session = null;
     renderHome();
     showScreen('screen-home');
@@ -427,7 +450,7 @@
     optsEl.classList.add('locked');
     setTimeout(() => optsEl.classList.remove('locked'), 500);
 
-    Speech.speak(question.speech.text, question.speech.lang);
+    speakQuestion(question);
   }
 
   /* ===== 作答 ===== */
@@ -437,6 +460,7 @@
     buttons.forEach(b => b.classList.add('disabled'));
 
     let fbEmoji, fbText, speechText;
+    let audioPaths = null; // 有預錄音檔時優先播放
     if (opt.correct) {
       session.scores[playerIdx] += 10;
       session.corrects[playerIdx] += 1;
@@ -444,7 +468,10 @@
       buttons.filter(b => b !== btn).forEach(b => b.classList.add('dimmed'));
       Sfx.correct();
       fbEmoji = '🎉';
-      fbText = speechText = PRAISES[Math.floor(Math.random() * PRAISES.length)];
+      const praiseIdx = Math.floor(Math.random() * PRAISES.length);
+      fbText = speechText = PRAISES[praiseIdx];
+      const praisePath = `audio/common/praise-${praiseIdx}.mp3`;
+      if (AudioBank.has(praisePath)) audioPaths = [praisePath];
       $('feedback-explain').textContent = '';
     } else {
       btn.classList.add('wrong');
@@ -458,17 +485,31 @@
       fbText = `正確答案是「${question.correctLabel}」`;
       speechText = `答錯了喔，正確答案是，${question.correctLabel}。${question.explanation || ''}`;
       $('feedback-explain').textContent = question.explanation || '';
+      if (question.audioId) {
+        const correctOpt = question.options.find(o => o.correct);
+        const paths = [
+          'audio/common/wrong-intro.mp3',
+          `audio/sit/${question.audioId}-o${correctOpt.origIdx}.mp3`,
+          `audio/sit/${question.audioId}-e.mp3`,
+        ];
+        if (AudioBank.hasAll(paths)) audioPaths = paths;
+      }
     }
 
     $('feedback-emoji').textContent = fbEmoji;
     $('feedback-text').textContent = fbText;
     $('btn-next').textContent = session.pos + 1 >= session.queue.length ? '看成績 🏁' : '下一題 ▶';
     $('feedback').classList.remove('hidden');
-    Speech.speak(speechText, 'zh-TW');
+    stopAllAudio();
+    if (audioPaths) {
+      AudioBank.playSeq(audioPaths).then(ok => { if (!ok) Speech.speak(speechText, 'zh-TW'); });
+    } else {
+      Speech.speak(speechText, 'zh-TW');
+    }
   }
 
   function nextQuestion() {
-    Speech.stop();
+    stopAllAudio();
     session.pos += 1;
     if (session.pos >= session.queue.length) {
       finishRound();
@@ -664,8 +705,7 @@
 
     $('btn-replay').addEventListener('click', () => {
       if (!session) return;
-      const q = session.queue[session.pos].question;
-      Speech.speak(q.speech.text, q.speech.lang);
+      speakQuestion(session.queue[session.pos].question);
     });
 
     $('btn-next').addEventListener('click', nextQuestion);
@@ -699,6 +739,7 @@
       const [vocab, situations] = await Promise.all([
         fetch('data/vocab.json').then(r => r.json()),
         fetch('data/situations.json').then(r => r.json()),
+        AudioBank.init(), // 音檔清單載不到就全程用裝置 TTS
       ]);
       // 手機（短邊 < 600px）限制數數圖示總數，讓每個圖示維持大尺寸
       const isSmallDevice = Math.min(window.screen.width, window.screen.height) < 600;

@@ -36,6 +36,53 @@ const Sfx = (() => {
   };
 })();
 
+/* 預錄語音庫：情境題與共用句的高品質音檔，播不了時由呼叫端退回裝置 TTS */
+const AudioBank = (() => {
+  let files = null; // Set<路徑>；null = 沒有音檔庫
+  let current = null;
+
+  async function init() {
+    try {
+      const r = await fetch('audio/manifest.json');
+      if (r.ok) {
+        const m = await r.json();
+        if (Array.isArray(m.files) && m.files.length) files = new Set(m.files);
+      }
+    } catch (e) { /* 沒有音檔庫就全用裝置 TTS */ }
+  }
+
+  const has = p => !!files && files.has(p);
+  const hasAll = paths => paths.every(has);
+
+  function stop() {
+    if (current) {
+      current.onended = null;
+      current.onerror = null;
+      try { current.pause(); } catch (e) { /* noop */ }
+      current = null;
+    }
+  }
+
+  /** 依序播放多個音檔；全部播完 resolve(true)，任何失敗立刻 resolve(false)（讓呼叫端退回 TTS） */
+  function playSeq(paths) {
+    return new Promise(resolve => {
+      stop();
+      let i = 0;
+      const next = () => {
+        if (i >= paths.length) { current = null; resolve(true); return; }
+        const a = new Audio(paths[i++]);
+        current = a;
+        a.onended = next;
+        a.onerror = () => { current = null; resolve(false); };
+        a.play().catch(() => { current = null; resolve(false); });
+      };
+      next();
+    });
+  }
+
+  return { init, has, hasAll, playSeq, stop };
+})();
+
 const Speech = (() => {
   let voices = [];
 

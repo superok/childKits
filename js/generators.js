@@ -292,14 +292,16 @@ const Gen = (() => {
     }
     const q = pick(fresh);
     used.add(`sit:${q.id}`);
-    const options = shuffle(q.options.map(o => ({
-      kind: 'text', label: o.text, emoji: o.emoji || '', correct: !!o.correct,
+    // origIdx 對應題庫 JSON 裡的選項順序，預錄音檔以此命名（{id}-o{origIdx}.mp3）
+    const options = shuffle(q.options.map((o, i) => ({
+      kind: 'text', label: o.text, emoji: o.emoji || '', correct: !!o.correct, origIdx: i,
     })));
     const optionSpeech = options.map(o => o.label).join('，還是');
     return {
       type: 'situations',
       prompt: q.question,
       speech: { text: `${q.question.replace(/？$/, '')}？${optionSpeech}？`, lang: 'zh-TW' },
+      audioId: q.id,
       image: q.image ? { kind: 'emoji', value: q.image } : null,
       options,
       correctLabel: q.options.find(o => o.correct).text,
