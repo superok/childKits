@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v14';
+  const APP_VERSION = 'v15';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -17,6 +17,23 @@
   let editingId = null;      // 編輯中的玩家 id（null = 新增）
   let editState = null;
   let setup = null;          // 選題設定 {mode, profileIds, category, count}
+
+  /**
+   * 名字的語音段落：有設定唸法用唸法；英文名自動切英文語音唸名字段；
+   * 中文名直接併進整句。回傳給 Speech.speakSeq 的段落陣列。
+   */
+  function nameSegments(profile, before, after) {
+    const spoken = (profile.nameSpeech || '').trim();
+    if (spoken) return [{ text: `${before}${spoken}${after}`, lang: 'zh-TW' }];
+    if (/[A-Za-z]/.test(profile.name)) {
+      return [
+        { text: before, lang: 'zh-TW' },
+        { text: profile.name, lang: 'en-US' },
+        { text: after, lang: 'zh-TW' },
+      ];
+    }
+    return [{ text: `${before}${profile.name}${after}`, lang: 'zh-TW' }];
+  }
 
   function stopAllAudio() {
     Speech.stop();
@@ -102,10 +119,11 @@
     const usedAvatars = Store.getProfiles().map(x => x.avatar);
     const usedColors = Store.getProfiles().map(x => x.color);
     editState = p ? {
-      name: p.name, avatar: p.avatar, color: p.color,
+      name: p.name, nameSpeech: p.nameSpeech || '', avatar: p.avatar, color: p.color,
       difficulty: p.difficulty, types: p.types.slice(),
     } : {
       name: '',
+      nameSpeech: '',
       avatar: AVATARS.find(a => !usedAvatars.includes(a)) || AVATARS[0],
       color: COLORS.find(c => !usedColors.includes(c)) || COLORS[0],
       difficulty: 1,
@@ -113,6 +131,7 @@
     };
     $('edit-title').textContent = id ? '編輯玩家' : '新增玩家';
     $('edit-name').value = editState.name;
+    $('edit-namespeech').value = editState.nameSpeech;
     $('btn-edit-delete').classList.toggle('hidden', !id || Store.getProfiles().length <= 1);
     renderEditPickers();
     $('modal-edit').classList.remove('hidden');
@@ -170,6 +189,7 @@
     const profile = {
       id: editingId || ('p' + Date.now()),
       name,
+      nameSpeech: $('edit-namespeech').value.trim(),
       avatar: editState.avatar,
       color: editState.color,
       difficulty: editState.difficulty,
@@ -364,7 +384,8 @@
     $('turn-text').textContent = `換 ${p.name} 囉！`;
     overlay.classList.remove('hidden');
     Sfx.turn();
-    Speech.speak(`換${p.name}囉！`);
+    stopAllAudio();
+    Speech.speakSeq(nameSegments(p, '換', '囉！'));
   }
 
   /* ===== 出題 ===== */
@@ -546,8 +567,9 @@
         ${isRecord ? '<div class="new-record">🎊 新紀錄！</div>' : ''}`;
 
       Sfx.fanfare();
-      if (correct >= 6) confetti();
-      Speech.speak(`${p.name}，你答對${correct}題，得到${score}分${isRecord ? '，是新紀錄喔' : ''}！`);
+      if (ratio >= 0.6) confetti();
+      stopAllAudio();
+      Speech.speakSeq(nameSegments(p, '', `，你答對${correct}題，得到${score}分${isRecord ? '，是新紀錄喔' : ''}！`));
     } else {
       const ranked = session.players
         .map((p, i) => ({ p, score: session.scores[i], correct: session.corrects[i] }))
@@ -577,7 +599,9 @@
 
       Sfx.fanfare();
       confetti();
-      Speech.speak(isTie ? '平手！大家都好棒！' : `恭喜${winners[0].p.name}獲勝！`);
+      stopAllAudio();
+      if (isTie) Speech.speak('平手！大家都好棒！');
+      else Speech.speakSeq(nameSegments(winners[0].p, '恭喜', '獲勝！'));
     }
 
     showScreen('screen-results');

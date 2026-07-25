@@ -354,6 +354,7 @@ input { font-family: inherit; }
 .edit-dialog { text-align: left; max-width: 560px; }
 .edit-dialog .dialog-title { text-align: center; }
 .edit-label { display: block; font-weight: 700; margin: 16px 0 8px; color: #8a6f56; font-size: 1.1rem; }
+.edit-hint { font-size: .9rem; color: #a08a6d; margin-top: 4px; }
 .edit-input {
   width: 100%; font-size: 1.5rem; padding: 14px 18px;
   border: 3px solid #e8dcc8; border-radius: 14px;

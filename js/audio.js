@@ -151,9 +151,41 @@ const Speech = (() => {
     });
   }
 
+  /**
+   * 連續唸多段（可各自指定語言），用於中英夾雜的句子
+   * （例：「換」zh →「Jen」en →「囉！」zh），段落間不會互相取消。
+   */
+  function speakSeq(segments) {
+    return new Promise(resolve => {
+      if (!('speechSynthesis' in window)) { resolve(); return; }
+      const list = segments.filter(s => s && s.text);
+      if (!list.length) { resolve(); return; }
+      let done = 0;
+      let finished = false;
+      const finish = () => { if (!finished && ++done >= list.length) { finished = true; resolve(); } };
+      try {
+        speechSynthesis.cancel();
+        for (const s of list) {
+          const u = new SpeechSynthesisUtterance(s.text);
+          u.lang = s.lang || 'zh-TW';
+          u.rate = prefs.rate;
+          const v = pickVoice(u.lang);
+          if (v) u.voice = v;
+          u.onend = finish;
+          u.onerror = finish;
+          speechSynthesis.speak(u);
+        }
+        setTimeout(() => { finished = true; resolve(); }, 15000); // 安全網
+      } catch (e) {
+        finished = true;
+        resolve();
+      }
+    });
+  }
+
   function stop() {
     try { speechSynthesis.cancel(); } catch (e) { /* noop */ }
   }
 
-  return { speak, stop, listVoices, savePrefs, prefs: () => ({ ...prefs }) };
+  return { speak, speakSeq, stop, listVoices, savePrefs, prefs: () => ({ ...prefs }) };
 })();
