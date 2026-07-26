@@ -41,6 +41,7 @@ input { font-family: inherit; }
 .loading-emoji { font-size: 4rem; animation: bounce 1s infinite; }
 
 .app-title {
+  font-size: 2.2rem;
   font-size: clamp(1.8rem, 4vw, 2.6rem);
   margin: 12px 0 4px;
   text-shadow: 0 2px 0 #fff;
@@ -166,6 +167,7 @@ input { font-family: inherit; }
   border: 4px solid #e8dcc8;
   border-radius: 26px;
   box-shadow: 0 5px 0 rgba(0,0,0,.08);
+  min-height: 140px;
   min-height: clamp(110px, 17vh, 150px);
   min-height: clamp(110px, 17dvh, 150px);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
@@ -238,16 +240,18 @@ input { font-family: inherit; }
   flex-shrink: 0;
   display: flex; flex-wrap: wrap; gap: 8px;
   align-items: center; justify-content: center;
+  font-size: 3.2rem;
   font-size: clamp(2rem, 6vh, 4rem);
   font-size: clamp(2rem, 6dvh, 4rem);
   margin: 6px 0;
   max-width: 800px;
 }
-.q-image.many { font-size: clamp(1.8rem, 5vh, 3rem); }
+.q-image.many { font-size: 2.4rem; font-size: clamp(1.8rem, 5vh, 3rem); }
 .q-image .math-op { font-size: .7em; color: #8a6f56; margin: 0 10px; }
 
 .q-prompt-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 16px; margin: 8px 0 16px; }
 .q-prompt {
+  font-size: 2.1rem;
   font-size: clamp(1.7rem, 4vw, 2.6rem);
   font-weight: 800; text-align: center;
 }
@@ -268,6 +272,7 @@ input { font-family: inherit; }
   border-radius: 28px;
   border: 4px solid #e8dcc8;
   box-shadow: 0 5px 0 rgba(0,0,0,.08);
+  min-height: 160px;
   min-height: clamp(120px, 22vh, 180px);
   min-height: clamp(120px, 22dvh, 180px);
   display: flex; flex-direction: column;
@@ -287,6 +292,7 @@ input { font-family: inherit; }
 
 .q-options.text-mode .opt-btn {
   flex-direction: row; justify-content: flex-start;
+  min-height: 100px;
   min-height: clamp(78px, 10vh, 110px);
   min-height: clamp(78px, 10dvh, 110px); font-size: 1.7rem; text-align: left;
 }
@@ -508,4 +514,83 @@ input { font-family: inherit; }
 
   .picker-item { width: 56px; height: 56px; font-size: 1.6rem; }
   .edit-dialog { max-width: 100%; }
+}
+
+
+/* ===== 舊 Safari（iOS < 14.1）沒有 flex gap：改用 margin 補間距 ===== */
+/* 先把 flex 容器的 gap 歸零（grid 的 gap 舊版支援，不動），避免偵測誤判時間距加倍 */
+html.no-flex-gap .profile-grid,
+html.no-flex-gap .home-actions,
+html.no-flex-gap .setup-players,
+html.no-flex-gap .count-row,
+html.no-flex-gap .q-image,
+html.no-flex-gap .q-prompt-row,
+html.no-flex-gap .feedback,
+html.no-flex-gap .dialog-actions,
+html.no-flex-gap .picker-grid,
+html.no-flex-gap .seg-row,
+html.no-flex-gap .mode-row,
+html.no-flex-gap .voice-list,
+html.no-flex-gap .board-content,
+html.no-flex-gap .quiz-header,
+html.no-flex-gap .player-chip,
+html.no-flex-gap .quiz-scores,
+html.no-flex-gap .setup-player-chip,
+html.no-flex-gap .vs-result-row,
+html.no-flex-gap .cat-card,
+html.no-flex-gap .opt-btn,
+html.no-flex-gap .mode-btn { gap: 0; }
+
+html.no-flex-gap .profile-grid { margin: -11px; }
+html.no-flex-gap .profile-grid > * { margin: 11px; }
+html.no-flex-gap .home-actions { margin-left: -8px; margin-right: -8px; }
+html.no-flex-gap .home-actions > * { margin: 8px; }
+html.no-flex-gap .setup-players { margin-left: -6px; margin-right: -6px; }
+html.no-flex-gap .setup-players > * { margin: 6px; }
+html.no-flex-gap .count-row { margin-left: -9px; margin-right: -9px; }
+html.no-flex-gap .count-row > * { margin: 9px; }
+html.no-flex-gap .q-image > * { margin: 3px; }
+html.no-flex-gap .q-prompt-row > * { margin: 6px 8px; }
+html.no-flex-gap .feedback > * { margin: 4px 10px; }
+html.no-flex-gap .dialog-actions > * { margin: 7px; }
+html.no-flex-gap .picker-grid > * { margin: 4px; }
+html.no-flex-gap .seg-row > * { margin: 4px; }
+html.no-flex-gap .mode-row > * { margin-bottom: 10px; }
+html.no-flex-gap .voice-list > * { margin-bottom: 8px; }
+html.no-flex-gap .board-content > * { margin-bottom: 22px; }
+html.no-flex-gap .quiz-header > * { margin-right: 14px; }
+html.no-flex-gap .player-chip > * { margin-right: 6px; }
+html.no-flex-gap .quiz-scores > * { margin-left: 8px; }
+html.no-flex-gap .setup-player-chip > * { margin-right: 8px; }
+html.no-flex-gap .vs-result-row > * { margin-right: 12px; }
+html.no-flex-gap .q-options.text-mode .opt-btn > * { margin-right: 10px; }
+html.no-flex-gap .cat-card > * { margin-bottom: 6px; }
+html.no-flex-gap .opt-btn > * { margin-bottom: 6px; }
+html.no-flex-gap .mode-btn > * { margin-bottom: 2px; }
+
+/* ===== 矮視窗（舊 iPad 在瀏覽器分頁裡、手機橫放）：整體縮小以塞進一屏 ===== */
+@media (max-height: 720px) {
+  .app-title { font-size: 1.9rem; margin: 6px 0 2px; }
+  .home-hint { font-size: 1rem; margin-bottom: 10px; }
+  .profile-card { width: 200px; padding: 16px 12px 12px; }
+  .profile-avatar { width: 96px; height: 96px; font-size: 3.2rem; margin-bottom: 8px; }
+  .profile-name { font-size: 1.4rem; }
+  .profile-best { font-size: .95rem; }
+  .profile-card.add-card { min-height: 180px; font-size: 1.1rem; }
+  .add-plus { font-size: 2.8rem; }
+  .big-btn { font-size: 1.25rem; padding: 13px 26px; }
+  .home-actions { margin-top: 14px; }
+  .cat-card { min-height: 96px; font-size: 1.1rem; padding: 10px 8px; }
+  .cat-card .cat-emoji { font-size: 2.4rem; }
+  .count-btn { padding: 12px 28px; font-size: 1.3rem; }
+  .setup-sub { font-size: 1.2rem; margin: 10px 0 8px; }
+  .setup-player-chip { font-size: 1.2rem; padding: 7px 16px; }
+  .quiz-main { padding-bottom: 150px; }
+  .feedback { max-height: 52vh; padding: 10px 18px calc(10px + env(safe-area-inset-bottom)); }
+  .feedback-emoji { font-size: 2.2rem; }
+  .feedback-text { font-size: 1.35rem; }
+  .feedback-explain { font-size: 1.1rem; }
+  .next-btn { font-size: 1.35rem; padding: 11px 28px; }
+  .turn-avatar { width: 130px; height: 130px; font-size: 4.4rem; margin-bottom: 12px; }
+  .turn-text { font-size: 2rem; margin-bottom: 18px; }
 }

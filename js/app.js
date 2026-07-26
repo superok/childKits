@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v17';
+  const APP_VERSION = 'v18';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -33,6 +33,18 @@
       ];
     }
     return [{ text: `${before}${profile.name}${after}`, lang: 'zh-TW' }];
+  }
+
+  /** 偵測 flex gap 支援（iOS 14.1 以前沒有），不支援就讓 CSS 改用 margin 排版 */
+  function detectFlexGap() {
+    const probe = document.createElement('div');
+    probe.style.cssText = 'display:flex;gap:10px;position:absolute;visibility:hidden';
+    probe.appendChild(document.createElement('div'));
+    probe.appendChild(document.createElement('div'));
+    document.body.appendChild(probe);
+    const supported = probe.scrollWidth === 10;
+    probe.remove();
+    if (!supported) document.documentElement.classList.add('no-flex-gap');
   }
 
   function stopAllAudio() {
@@ -241,10 +253,8 @@
       modeRow.appendChild(b);
     }
 
-    // 裝置語音的選擇在錄音模式下只影響唸名字，說明要講清楚
-    $('voice-list-hint').textContent = deviceMode
-      ? '目前全部由裝置語音朗讀，這裡的選擇會套用到所有題目。'
-      : '目前只有唸名字時會用到（例：換 ○○ 囉），題目與回饋用內建錄音。';
+    // 裝置語音細項只在「裝置語音」模式下出現，避免多一層無用的選擇
+    $('voice-device-section').classList.toggle('hidden', !deviceMode);
 
     const rateRow = $('voice-rate');
     rateRow.innerHTML = '';
@@ -797,6 +807,7 @@
 
   /* ===== 啟動 ===== */
   async function init() {
+    detectFlexGap();
     $('app-version').textContent = APP_VERSION;
     bindEvents();
     try {
