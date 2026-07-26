@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v16';
+  const APP_VERSION = 'v17';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -40,8 +40,9 @@
     AudioBank.stop();
   }
 
-  /** 這一題有沒有完整的預錄音檔可用 */
-  const hasQuestionAudio = q => !!q.audioSeq && AudioBank.hasAll(q.audioSeq);
+  /** 這一題有沒有完整的預錄音檔可用（家長選「裝置語音」時一律不用） */
+  const hasQuestionAudio = q =>
+    Speech.prefs().mode !== 'device' && !!q.audioSeq && AudioBank.hasAll(q.audioSeq);
 
   /** 唸出題目：優先用預錄音檔（依畫面上的選項順序），失敗退回裝置 TTS */
   function speakQuestion(question) {
@@ -198,11 +199,52 @@
   }
 
   /* ===== 語音設定 ===== */
-  const RATES = [[0.8, '慢慢說 🐢'], [0.95, '正常 🙂'], [1.1, '快一點 🐇']];
+  // [TTS 語速, 標籤, 預錄音檔播放倍率]——兩者校準到相近聽感
+  const RATES = [[0.8, '慢慢說 🐢', 0.85], [0.95, '正常 🙂', 1], [1.1, '快一點 🐇', 1.2]];
+  const MODES = [['recorded', '🎧 高品質錄音', '題目與回饋用內建錄音（推薦）'], ['device', '📱 裝置語音', '全部改用 iPad 的語音，可自選聲音']];
   const VOICE_SAMPLE = { zh: '你好，我是說故事的聲音！', en: 'Hello! Find the apple!' };
+  const SAMPLE_CLIP = 'audio/frag/tie.mp3'; // 切換設定時用來試聽錄音的句子
+
+  /** 把語速偏好同步到預錄音檔的播放速度 */
+  function applyRate() {
+    const r = Speech.prefs().rate;
+    const row = RATES.find(x => Math.abs(x[0] - r) < 0.01) || RATES[1];
+    AudioBank.setRate(row[2]);
+  }
+
+  /** 試聽：依目前模式播錄音或裝置語音 */
+  function previewVoice(primary = 'zh') {
+    stopAllAudio();
+    const prefs = Speech.prefs();
+    if (prefs.mode !== 'device' && primary === 'zh' && AudioBank.has(SAMPLE_CLIP)) {
+      AudioBank.playSeq([SAMPLE_CLIP]).then(ok => { if (!ok) Speech.speak(VOICE_SAMPLE.zh, 'zh-TW'); });
+    } else {
+      Speech.speak(VOICE_SAMPLE[primary], primary === 'zh' ? 'zh-TW' : 'en-US');
+    }
+  }
 
   function renderVoiceModal() {
     const prefs = Speech.prefs();
+    const deviceMode = prefs.mode === 'device';
+
+    const modeRow = $('voice-mode');
+    modeRow.innerHTML = '';
+    for (const [mode, label, desc] of MODES) {
+      const b = document.createElement('button');
+      b.className = 'mode-btn' + (prefs.mode === mode ? ' selected' : '');
+      b.innerHTML = `<span class="mode-title">${label}</span><span class="mode-desc">${desc}</span>`;
+      b.addEventListener('click', () => {
+        Speech.savePrefs({ mode });
+        renderVoiceModal();
+        previewVoice('zh');
+      });
+      modeRow.appendChild(b);
+    }
+
+    // 裝置語音的選擇在錄音模式下只影響唸名字，說明要講清楚
+    $('voice-list-hint').textContent = deviceMode
+      ? '目前全部由裝置語音朗讀，這裡的選擇會套用到所有題目。'
+      : '目前只有唸名字時會用到（例：換 ○○ 囉），題目與回饋用內建錄音。';
 
     const rateRow = $('voice-rate');
     rateRow.innerHTML = '';
@@ -212,8 +254,9 @@
       b.textContent = label;
       b.addEventListener('click', () => {
         Speech.savePrefs({ rate });
+        applyRate();
         renderVoiceModal();
-        Speech.speak(VOICE_SAMPLE.zh, 'zh-TW');
+        previewVoice('zh');
       });
       rateRow.appendChild(b);
     }
@@ -250,7 +293,7 @@
         b.addEventListener('click', () => {
           Speech.savePrefs({ [primary]: v.voiceURI });
           renderVoiceModal();
-          Speech.speak(VOICE_SAMPLE[primary], primary === 'zh' ? 'zh-TW' : 'en-US'); // 點了立刻試聽
+          Speech.speak(VOICE_SAMPLE[primary], primary === 'zh' ? 'zh-TW' : 'en-US'); // 點了立刻試聽（一定用裝置語音）
         });
         listEl.appendChild(b);
       }
@@ -503,7 +546,7 @@
       fbText = `正確答案是「${question.correctLabel}」`;
       speechText = `答錯了喔，正確答案是，${question.correctLabel}。${question.explanation || ''}`;
       $('feedback-explain').textContent = question.explanation || '';
-      if (question.answerAudio) {
+      if (question.answerAudio && Speech.prefs().mode !== 'device') {
         const paths = ['audio/common/wrong-intro.mp3', question.answerAudio];
         if (question.explainAudio) paths.push(question.explainAudio);
         if (AudioBank.hasAll(paths)) audioPaths = paths;
@@ -595,7 +638,7 @@
       stopAllAudio();
       if (isTie) {
         const tie = 'audio/frag/tie.mp3';
-        if (AudioBank.has(tie)) AudioBank.playSeq([tie]).then(ok => { if (!ok) Speech.speak('平手！大家都好棒！'); });
+        if (Speech.prefs().mode !== 'device' && AudioBank.has(tie)) AudioBank.playSeq([tie]).then(ok => { if (!ok) Speech.speak('平手！大家都好棒！'); });
         else Speech.speak('平手！大家都好棒！');
       }
       else Speech.speakSeq(nameSegments(winners[0].p, '恭喜', '獲勝！'));
@@ -765,6 +808,7 @@
       // 手機（短邊 < 600px）限制數數圖示總數，讓每個圖示維持大尺寸
       const isSmallDevice = Math.min(window.screen.width, window.screen.height) < 600;
       Gen.init(vocab, situations, { maxGridItems: isSmallDevice ? 12 : 26 });
+      applyRate();
     } catch (e) {
       $('screen-loading').querySelector('.loading-box').innerHTML =
         '<div class="loading-emoji">😢</div><div>題庫載入失敗。<br>請用網頁伺服器開啟（不能直接開檔案），<br>或檢查網路後重新整理。</div>';

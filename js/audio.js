@@ -40,6 +40,10 @@ const Sfx = (() => {
 const AudioBank = (() => {
   let files = null; // Set<路徑>；null = 沒有音檔庫
   let current = null;
+  let playbackRate = 1;
+
+  /** 設定播放速度（語速設定用，音檔已是 -10% 錄製，故 1 = 正常） */
+  function setRate(r) { playbackRate = r; }
 
   async function init() {
     try {
@@ -71,6 +75,10 @@ const AudioBank = (() => {
       const next = () => {
         if (i >= paths.length) { current = null; resolve(true); return; }
         const a = new Audio(paths[i++]);
+        a.playbackRate = playbackRate;
+        // 變速不變調，避免慢速時聲音變低沉
+        a.preservesPitch = true;
+        a.webkitPreservesPitch = true;
         current = a;
         a.onended = next;
         a.onerror = () => { current = null; resolve(false); };
@@ -80,7 +88,7 @@ const AudioBank = (() => {
     });
   }
 
-  return { init, has, hasAll, playSeq, stop };
+  return { init, has, hasAll, playSeq, stop, setRate };
 })();
 
 const Speech = (() => {
@@ -88,7 +96,8 @@ const Speech = (() => {
 
   // 家長可選的語音偏好（聲音與語速），存本機
   const PREF_KEY = 'quizkids.speech.v1';
-  const prefs = { zh: null, en: null, rate: 0.95 }; // zh/en 存 voiceURI，null = 自動
+  // zh/en 存 voiceURI（null = 自動）；mode：recorded = 用預錄音檔，device = 全部用裝置語音
+  const prefs = { zh: null, en: null, rate: 0.95, mode: 'recorded' };
   try { Object.assign(prefs, JSON.parse(localStorage.getItem(PREF_KEY) || '{}')); } catch (e) { /* noop */ }
 
   function savePrefs(p) {

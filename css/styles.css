@@ -385,6 +385,16 @@ input { font-family: inherit; }
 .type-btn.selected { border-color: #2a9d3f; background: #e2f7e5; }
 
 /* ===== 語音設定 ===== */
+.mode-row { display: flex; flex-direction: column; gap: 10px; }
+.mode-btn {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 14px 16px; border-radius: 16px;
+  border: 3px solid #e8dcc8; background: #fff; text-align: left;
+}
+.mode-btn.selected { border-color: #2a9d3f; background: #e2f7e5; }
+.mode-title { font-size: 1.2rem; font-weight: 800; }
+.mode-desc { font-size: .92rem; color: #8a6f56; }
+.voice-sublabel { font-size: .95rem; font-weight: 700; color: #8a6f56; margin: 10px 0 5px; }
 .voice-list {
   display: flex; flex-direction: column; gap: 8px;
   max-height: 180px; overflow-y: auto;
