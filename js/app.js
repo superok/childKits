@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v18';
+  const APP_VERSION = 'v19';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -60,8 +60,9 @@
   function speakQuestion(question) {
     stopAllAudio();
     if (hasQuestionAudio(question)) {
-      AudioBank.playSeq(question.audioSeq).then(ok => {
-        if (!ok) Speech.speak(question.speech.text, question.speech.lang);
+      AudioBank.playSeq(question.audioSeq).then(st => {
+        // 只有真的播不出來才退回 TTS；被中止（已進到下個動作）就什麼都不做
+        if (st === 'failed') Speech.speak(question.speech.text, question.speech.lang);
       });
       return;
     }
@@ -229,7 +230,7 @@
     stopAllAudio();
     const prefs = Speech.prefs();
     if (prefs.mode !== 'device' && primary === 'zh' && AudioBank.has(SAMPLE_CLIP)) {
-      AudioBank.playSeq([SAMPLE_CLIP]).then(ok => { if (!ok) Speech.speak(VOICE_SAMPLE.zh, 'zh-TW'); });
+      AudioBank.playSeq([SAMPLE_CLIP]).then(st => { if (st === 'failed') Speech.speak(VOICE_SAMPLE.zh, 'zh-TW'); });
     } else {
       Speech.speak(VOICE_SAMPLE[primary], primary === 'zh' ? 'zh-TW' : 'en-US');
     }
@@ -569,7 +570,7 @@
     $('feedback').classList.remove('hidden');
     stopAllAudio();
     if (audioPaths) {
-      AudioBank.playSeq(audioPaths).then(ok => { if (!ok) Speech.speak(speechText, 'zh-TW'); });
+      AudioBank.playSeq(audioPaths).then(st => { if (st === 'failed') Speech.speak(speechText, 'zh-TW'); });
     } else {
       Speech.speak(speechText, 'zh-TW');
     }
@@ -648,7 +649,7 @@
       stopAllAudio();
       if (isTie) {
         const tie = 'audio/frag/tie.mp3';
-        if (Speech.prefs().mode !== 'device' && AudioBank.has(tie)) AudioBank.playSeq([tie]).then(ok => { if (!ok) Speech.speak('平手！大家都好棒！'); });
+        if (Speech.prefs().mode !== 'device' && AudioBank.has(tie)) AudioBank.playSeq([tie]).then(st => { if (st === 'failed') Speech.speak('平手！大家都好棒！'); });
         else Speech.speak('平手！大家都好棒！');
       }
       else Speech.speakSeq(nameSegments(winners[0].p, '恭喜', '獲勝！'));
@@ -773,6 +774,7 @@
 
     $('btn-turn-go').addEventListener('click', () => {
       $('overlay-turn').classList.add('hidden');
+      stopAllAudio(); // 名字還在唸就直接切掉，不要跟題目疊在一起
       Sfx.tap();
       renderQuestion();
     });

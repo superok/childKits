@@ -41,6 +41,7 @@ const AudioBank = (() => {
   let files = null; // Set<路徑>；null = 沒有音檔庫
   let current = null;
   let playbackRate = 1;
+  let gen = 0; // 世代標記：每次播放/停止都 +1，舊序列的回呼一律失效
 
   /** 設定播放速度（語速設定用，音檔已是 -10% 錄製，故 1 = 正常） */
   function setRate(r) { playbackRate = r; }
@@ -58,7 +59,7 @@ const AudioBank = (() => {
   const has = p => !!files && files.has(p);
   const hasAll = paths => paths.every(has);
 
-  function stop() {
+  function stopCurrent() {
     if (current) {
       current.onended = null;
       current.onerror = null;
@@ -67,22 +68,41 @@ const AudioBank = (() => {
     }
   }
 
-  /** 依序播放多個音檔；全部播完 resolve(true)，任何失敗立刻 resolve(false)（讓呼叫端退回 TTS） */
+  function stop() {
+    gen++; // 讓進行中的序列立刻失效
+    stopCurrent();
+  }
+
+  /**
+   * 依序播放多個音檔，resolve：
+   *   'done'    全部播完
+   *   'failed'  播不出來（呼叫端可退回 TTS）
+   *   'aborted' 被新的播放或 stop() 中止（呼叫端什麼都不該做）
+   */
   function playSeq(paths) {
+    const token = ++gen; // 開始新序列，同時作廢上一個
+    stopCurrent();
     return new Promise(resolve => {
-      stop();
       let i = 0;
+      const finish = status => {
+        if (token === gen) current = null;
+        resolve(status);
+      };
       const next = () => {
-        if (i >= paths.length) { current = null; resolve(true); return; }
+        if (token !== gen) { finish('aborted'); return; }
+        if (i >= paths.length) { finish('done'); return; }
         const a = new Audio(paths[i++]);
         a.playbackRate = playbackRate;
         // 變速不變調，避免慢速時聲音變低沉
         a.preservesPitch = true;
         a.webkitPreservesPitch = true;
         current = a;
-        a.onended = next;
-        a.onerror = () => { current = null; resolve(false); };
-        a.play().catch(() => { current = null; resolve(false); });
+        a.onended = () => { if (token === gen) next(); };
+        a.onerror = () => { if (token === gen) finish('failed'); };
+        a.play().then(() => {
+          // 音檔還在下載時被中止的話，play() 會晚一步才成功；這裡把這個孤兒立刻停掉
+          if (token !== gen) { try { a.pause(); } catch (e) { /* noop */ } }
+        }).catch(() => { if (token === gen) finish('failed'); });
       };
       next();
     });
@@ -136,14 +156,26 @@ const Speech = (() => {
   }
 
   /** 朗讀文字，回傳 Promise（結束或失敗都會 resolve，不會卡住流程） */
+  let speechGen = 0;
+
+  /** iOS 的 cancel() 在暫停狀態下會失效，先 resume 再 cancel 比較可靠 */
+  function hardCancel() {
+    try {
+      if (speechSynthesis.paused) speechSynthesis.resume();
+      speechSynthesis.cancel();
+    } catch (e) { /* noop */ }
+  }
+
   function speak(text, lang = 'zh-TW', rate = null) {
     if (rate === null) rate = prefs.rate;
+    const token = ++speechGen;
     return new Promise(resolve => {
       if (!('speechSynthesis' in window) || !text) { resolve(); return; }
       let done = false;
       const finish = () => { if (!done) { done = true; resolve(); } };
       try {
-        speechSynthesis.cancel();
+        hardCancel();
+        if (token !== speechGen) { finish(); return; }
         const u = new SpeechSynthesisUtterance(text);
         u.lang = lang;
         u.rate = rate;
@@ -165,35 +197,42 @@ const Speech = (() => {
    * （例：「換」zh →「Jen」en →「囉！」zh），段落間不會互相取消。
    */
   function speakSeq(segments) {
+    const token = ++speechGen;
     return new Promise(resolve => {
       if (!('speechSynthesis' in window)) { resolve(); return; }
       const list = segments.filter(s => s && s.text);
       if (!list.length) { resolve(); return; }
-      let done = 0;
       let finished = false;
-      const finish = () => { if (!finished && ++done >= list.length) { finished = true; resolve(); } };
-      try {
-        speechSynthesis.cancel();
-        for (const s of list) {
+      const finish = () => { if (!finished) { finished = true; resolve(); } };
+      hardCancel();
+
+      // 一段唸完才排下一段：任何時候佇列裡最多一句，中止後續段落就不會再被排入
+      let i = 0;
+      const next = () => {
+        if (finished) return;
+        if (token !== speechGen || i >= list.length) { finish(); return; }
+        const s = list[i++];
+        try {
           const u = new SpeechSynthesisUtterance(s.text);
           u.lang = s.lang || 'zh-TW';
           u.rate = prefs.rate;
           const v = pickVoice(u.lang);
           if (v) u.voice = v;
-          u.onend = finish;
-          u.onerror = finish;
+          u.onend = () => { if (token === speechGen) next(); else finish(); };
+          u.onerror = () => { if (token === speechGen) next(); else finish(); };
           speechSynthesis.speak(u);
+        } catch (e) {
+          finish();
         }
-        setTimeout(() => { finished = true; resolve(); }, 15000); // 安全網
-      } catch (e) {
-        finished = true;
-        resolve();
-      }
+      };
+      next();
+      setTimeout(finish, 20000); // 安全網
     });
   }
 
   function stop() {
-    try { speechSynthesis.cancel(); } catch (e) { /* noop */ }
+    speechGen++; // 讓進行中的接力立刻停止排下一段
+    hardCancel();
   }
 
   return { speak, speakSeq, stop, listVoices, savePrefs, prefs: () => ({ ...prefs }) };
