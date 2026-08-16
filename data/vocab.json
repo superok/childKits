@@ -350,9 +350,9 @@
       "emoji": "🥑"
     },
     {
-      "zh": "藍莓",
-      "en": "blueberry",
-      "emoji": "🫐"
+      "zh": "哈密瓜",
+      "en": "melon",
+      "emoji": "🍈"
     }
   ],
   "foods": [
@@ -835,9 +835,9 @@
       "emoji": "☎️"
     },
     {
-      "zh": "牙刷",
-      "en": "toothbrush",
-      "emoji": "🪥"
+      "zh": "掃把",
+      "en": "broom",
+      "emoji": "🧹"
     },
     {
       "zh": "肥皂",
@@ -986,7 +986,7 @@
       "zh": "粉紅色",
       "en": "pink",
       "hex": "#f27fb2",
-      "emoji": "🩷"
+      "emoji": "🌸"
     },
     {
       "zh": "咖啡色",

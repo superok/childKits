@@ -89,7 +89,7 @@
       "options": [
         { "text": "牽著大人的手", "emoji": "🤝", "correct": true },
         { "text": "自己跑來跑去", "emoji": "🏃" },
-        { "text": "躲在車子後面玩", "emoji": "🫣" }
+        { "text": "躲在車子後面玩", "emoji": "🙈" }
       ],
       "explanation": "停車場有很多車子，開車的人看不到小朋友，要牽好大人的手喔！"
     },
@@ -137,7 +137,7 @@
       "options": [
         { "text": "不可以，等車停穩再站起來", "emoji": "🧍", "correct": true },
         { "text": "可以，先站起來比較快", "emoji": "🏃" },
-        { "text": "可以，扶著別人站起來", "emoji": "🫸" }
+        { "text": "可以，扶著別人站起來", "emoji": "✋" }
       ],
       "explanation": "車子還在動的時候站起來很容易跌倒，要等車子完全停穩才可以站起來喔！"
     },
@@ -145,11 +145,11 @@
       "id": "traffic-12",
       "category": "traffic",
       "question": "搭捷運的手扶梯時，應該怎麼做？",
-      "image": "🚇🪜",
+      "image": "🚇⬆️",
       "options": [
         { "text": "站穩，扶好扶手", "emoji": "🤚", "correct": true },
         { "text": "在手扶梯上跑跳", "emoji": "🏃" },
-        { "text": "坐在階梯上滑下去", "emoji": "🛝" }
+        { "text": "坐在階梯上滑下去", "emoji": "🎢" }
       ],
       "explanation": "手扶梯要站穩扶好扶手，跑跳或坐下去都很容易跌倒受傷喔！"
     },
@@ -241,11 +241,11 @@
       "id": "traffic-20",
       "category": "traffic",
       "question": "搭電梯的時候人很多，該怎麼做？",
-      "image": "🛗🧍🧍",
+      "image": "🏢🧍🧍",
       "options": [
         { "text": "排隊等候，不要用力擠", "emoji": "🧍", "correct": true },
         { "text": "用力擠進去", "emoji": "💪" },
-        { "text": "從縫隙硬鑽進去", "emoji": "🫣" }
+        { "text": "從縫隙硬鑽進去", "emoji": "🙈" }
       ],
       "explanation": "搭電梯人多的時候要排隊，用力擠會撞到別人或被夾到，很危險喔！"
     },
@@ -269,7 +269,7 @@
       "image": "🍲♨️",
       "options": [
         { "text": "請大人幫忙", "emoji": "🙋", "correct": true },
-        { "text": "自己伸手去端", "emoji": "🫲" },
+        { "text": "自己伸手去端", "emoji": "🤚" },
         { "text": "用力拉桌巾", "emoji": "💪" }
       ],
       "explanation": "熱湯會燙傷手手，要請大人幫忙，等涼一點再喝喔！"
@@ -318,7 +318,7 @@
       "options": [
         { "text": "不可以，會燙傷", "emoji": "🙅", "correct": true },
         { "text": "點點看火", "emoji": "🔥" },
-        { "text": "偷偷收起來玩", "emoji": "🫣" }
+        { "text": "偷偷收起來玩", "emoji": "🙈" }
       ],
       "explanation": "打火機會生火，會燙傷還可能讓房子燒起來，不可以玩喔！"
     },
@@ -338,7 +338,7 @@
       "id": "danger-08",
       "category": "danger",
       "question": "可以爬到窗戶旁邊玩嗎？",
-      "image": "🪟🏢",
+      "image": "🏠🏢",
       "options": [
         { "text": "不可以，會掉下去", "emoji": "🙅", "correct": true },
         { "text": "可以，風景很好", "emoji": "🌇" },
@@ -362,10 +362,10 @@
       "id": "danger-10",
       "category": "danger",
       "question": "電梯門快要關起來的時候，該怎麼辦？",
-      "image": "🛗🚪",
+      "image": "🏢🚪",
       "options": [
         { "text": "等下一班電梯", "emoji": "🧍", "correct": true },
-        { "text": "用手去擋門", "emoji": "🫸" },
+        { "text": "用手去擋門", "emoji": "✋" },
         { "text": "用最快的速度衝進去", "emoji": "🏃" }
       ],
       "explanation": "電梯門會夾到手手很危險，門快關了就等下一班喔！"
@@ -377,7 +377,7 @@
       "image": "🔺💥",
       "options": [
         { "text": "不要用手撿，告訴大人", "emoji": "🙋", "correct": true },
-        { "text": "用手撿起來丟垃圾桶", "emoji": "🫲" },
+        { "text": "用手撿起來丟垃圾桶", "emoji": "🤚" },
         { "text": "光著腳走過去", "emoji": "🦶" }
       ],
       "explanation": "碎玻璃很銳利，用手撿或光腳走都會被割傷，要告訴大人來處理喔！"
@@ -389,7 +389,7 @@
       "image": "🔥🍳",
       "options": [
         { "text": "不可以，會燙傷", "emoji": "🙅", "correct": true },
-        { "text": "可以，摸摸看有多熱", "emoji": "🫲" },
+        { "text": "可以，摸摸看有多熱", "emoji": "🤚" },
         { "text": "可以，拿東西去烤", "emoji": "🍢" }
       ],
       "explanation": "瓦斯爐的火很燙，靠近會被燙傷，小朋友不可以自己靠近玩喔！"
@@ -410,7 +410,7 @@
       "id": "danger-14",
       "category": "danger",
       "question": "走樓梯上下樓的時候，應該怎麼做？",
-      "image": "🪜🚶",
+      "image": "⬆️🚶",
       "options": [
         { "text": "扶著扶手慢慢走", "emoji": "🤚", "correct": true },
         { "text": "用跑的衝上衝下", "emoji": "🏃" },
@@ -426,7 +426,7 @@
       "options": [
         { "text": "不可以，先問主人可不可以", "emoji": "🙅", "correct": true },
         { "text": "可以，直接衝過去抱", "emoji": "🏃" },
-        { "text": "可以，拉牠的尾巴玩", "emoji": "🫲" }
+        { "text": "可以，拉牠的尾巴玩", "emoji": "🤚" }
       ],
       "explanation": "不認識的狗狗可能會害怕咬人，要先問過主人才能靠近喔！"
     },
@@ -461,7 +461,7 @@
       "image": "🔌⚠️",
       "options": [
         { "text": "不要碰，告訴大人", "emoji": "🙋", "correct": true },
-        { "text": "撿起來看看", "emoji": "🫲" },
+        { "text": "撿起來看看", "emoji": "🤚" },
         { "text": "用腳踢踢看", "emoji": "🦶" }
       ],
       "explanation": "掉在地上的電線可能還有電，摸了會觸電，要遠離並告訴大人喔！"
@@ -473,7 +473,7 @@
       "image": "🚧⛔",
       "options": [
         { "text": "不可以，裡面有危險工具", "emoji": "🙅", "correct": true },
-        { "text": "可以，趁沒人的時候溜進去", "emoji": "🫣" },
+        { "text": "可以，趁沒人的時候溜進去", "emoji": "🙈" },
         { "text": "可以，好奇進去看看", "emoji": "👀" }
       ],
       "explanation": "工地裡有很多危險的機具和坑洞，圍籬圍起來就表示不可以進去喔！"
@@ -498,7 +498,7 @@
       "image": "🍚🧼",
       "options": [
         { "text": "洗手", "emoji": "🧼", "correct": true },
-        { "text": "直接用手抓來吃", "emoji": "🫲" },
+        { "text": "直接用手抓來吃", "emoji": "🤚" },
         { "text": "先玩玩具", "emoji": "🧸" }
       ],
       "explanation": "吃飯前要先洗手，把細菌洗掉，才不會吃到肚子裡喔！"
@@ -557,7 +557,7 @@
       "question": "早上起床以後要做什麼？",
       "image": "🌅🛏️",
       "options": [
-        { "text": "刷牙洗臉", "emoji": "🪥", "correct": true },
+        { "text": "刷牙洗臉", "emoji": "🦷", "correct": true },
         { "text": "繼續玩平板", "emoji": "📱" },
         { "text": "直接吃糖果", "emoji": "🍬" }
       ],
@@ -607,7 +607,7 @@
       "options": [
         { "text": "慢慢走", "emoji": "🚶", "correct": true },
         { "text": "用最快的速度衝", "emoji": "🏃" },
-        { "text": "邊跑邊推人", "emoji": "🫸" }
+        { "text": "邊跑邊推人", "emoji": "✋" }
       ],
       "explanation": "在家裡要慢慢走，跑太快會撞到桌角或跌倒受傷喔！"
     },
@@ -689,7 +689,7 @@
       "question": "到學校以後，外套和書包要放在哪裡？",
       "image": "🏫🧥",
       "options": [
-        { "text": "放在自己的掛勾或位置", "emoji": "🪝", "correct": true },
+        { "text": "放在自己的掛勾或位置", "emoji": "📌", "correct": true },
         { "text": "隨便丟在地上", "emoji": "⬇️" },
         { "text": "丟到別人的座位", "emoji": "🪑" }
       ],
@@ -703,7 +703,7 @@
       "options": [
         { "text": "主動關掉去做別的事", "emoji": "🙆", "correct": true },
         { "text": "繼續看不理會", "emoji": "🙈" },
-        { "text": "假裝沒聽到時間到了", "emoji": "🫣" }
+        { "text": "假裝沒聽到時間到了", "emoji": "🙈" }
       ],
       "explanation": "說好的時間到了就要主動關掉，這樣才能保護眼睛，也是說到做到喔！"
     },
@@ -752,7 +752,7 @@
       "options": [
         { "text": "先問「可以借我玩嗎？」", "emoji": "🙋", "correct": true },
         { "text": "直接搶過來", "emoji": "💪" },
-        { "text": "偷偷拿走", "emoji": "🫣" }
+        { "text": "偷偷拿走", "emoji": "🙈" }
       ],
       "explanation": "想玩別人的東西要先問，對方說好才可以拿喔！"
     },
@@ -788,7 +788,7 @@
       "options": [
         { "text": "等他說完再說", "emoji": "👂", "correct": true },
         { "text": "大聲打斷他", "emoji": "📢" },
-        { "text": "摀住他的嘴巴", "emoji": "🫢" }
+        { "text": "摀住他的嘴巴", "emoji": "🤭" }
       ],
       "explanation": "別人說話時要耐心聽完，想說話等他說完再說，才有禮貌喔！"
     },
@@ -820,11 +820,11 @@
       "id": "manners-08",
       "category": "manners",
       "question": "想玩溜滑梯，但是有人在排隊，該怎麼辦？",
-      "image": "🛝🧍🧍",
+      "image": "🎢🧍🧍",
       "options": [
         { "text": "排隊等輪到自己", "emoji": "🧍", "correct": true },
         { "text": "插隊擠到最前面", "emoji": "💨" },
-        { "text": "把別人推開", "emoji": "🫸" }
+        { "text": "把別人推開", "emoji": "✋" }
       ],
       "explanation": "玩遊樂器材要排隊，輪流玩大家才都玩得到喔！"
     },
@@ -835,7 +835,7 @@
       "image": "🍪🧒👶",
       "options": [
         { "text": "分享一起吃", "emoji": "🤝", "correct": true },
-        { "text": "全部藏起來自己吃", "emoji": "🫣" },
+        { "text": "全部藏起來自己吃", "emoji": "🙈" },
         { "text": "在他面前炫耀", "emoji": "😝" }
       ],
       "explanation": "好吃的東西跟大家分享，一起吃更開心喔！"
@@ -860,7 +860,7 @@
       "options": [
         { "text": "先敲門", "emoji": "✊", "correct": true },
         { "text": "直接衝進去", "emoji": "🏃" },
-        { "text": "偷偷躲在外面看", "emoji": "🫣" }
+        { "text": "偷偷躲在外面看", "emoji": "🙈" }
       ],
       "explanation": "進別人的房間前要先敲門，等對方說可以了再進去，這樣才有禮貌喔！"
     },
@@ -896,7 +896,7 @@
       "options": [
         { "text": "保持安靜不吵他", "emoji": "🤫", "correct": true },
         { "text": "大聲唱歌", "emoji": "🎤" },
-        { "text": "搖醒他一起玩", "emoji": "🫲" }
+        { "text": "搖醒他一起玩", "emoji": "🤚" }
       ],
       "explanation": "別人在睡覺的時候要保持安靜，這樣才不會吵醒他，也是體貼的表現喔！"
     },
@@ -904,7 +904,7 @@
       "id": "manners-15",
       "category": "manners",
       "question": "搭電梯遇到認識的鄰居，該怎麼做？",
-      "image": "🛗🙂",
+      "image": "🏢🙂",
       "options": [
         { "text": "微笑打招呼", "emoji": "👋", "correct": true },
         { "text": "低頭裝作不認識", "emoji": "😑" },
@@ -920,7 +920,7 @@
       "options": [
         { "text": "先說「不好意思」再說話", "emoji": "🙋", "correct": true },
         { "text": "直接大聲打斷他", "emoji": "📢" },
-        { "text": "用力拉他的衣服", "emoji": "🫲" }
+        { "text": "用力拉他的衣服", "emoji": "🤚" }
       ],
       "explanation": "打擾別人之前要先說「不好意思」，這樣才不會顯得沒有禮貌喔！"
     },
@@ -1001,9 +1001,9 @@
       "id": "hygiene-03",
       "category": "hygiene",
       "question": "睡覺之前要做什麼？",
-      "image": "🌙🪥",
+      "image": "🌙🦷",
       "options": [
-        { "text": "刷牙", "emoji": "🪥", "correct": true },
+        { "text": "刷牙", "emoji": "🦷", "correct": true },
         { "text": "吃糖果", "emoji": "🍬" },
         { "text": "喝汽水", "emoji": "🥤" }
       ],
@@ -1013,7 +1013,7 @@
       "id": "hygiene-04",
       "category": "hygiene",
       "question": "手髒髒的時候想吃東西，該怎麼辦？",
-      "image": "🫲🍎",
+      "image": "🤚🍎",
       "options": [
         { "text": "先洗手再吃", "emoji": "🧼", "correct": true },
         { "text": "直接用髒手抓來吃", "emoji": "😋" },
@@ -1076,8 +1076,8 @@
       "image": "🥤💧",
       "options": [
         { "text": "喝自己的水壺", "emoji": "🍼", "correct": true },
-        { "text": "拿別人的來喝", "emoji": "🫲" },
-        { "text": "偷喝一口再放回去", "emoji": "🫣" }
+        { "text": "拿別人的來喝", "emoji": "🤚" },
+        { "text": "偷喝一口再放回去", "emoji": "🙈" }
       ],
       "explanation": "要喝自己的水壺，喝別人的會交換細菌，容易生病喔！"
     },
@@ -1145,7 +1145,7 @@
       "id": "hygiene-15",
       "category": "hygiene",
       "question": "自己的牙刷，可以借給好朋友一起用嗎？",
-      "image": "🪥🚫",
+      "image": "🦷🚫",
       "options": [
         { "text": "不可以，牙刷要自己用", "emoji": "🙅", "correct": true },
         { "text": "可以，好朋友沒關係", "emoji": "🤝" },
@@ -1257,7 +1257,7 @@
       "image": "🌙😨🛏️",
       "options": [
         { "text": "跟爸爸媽媽說我會怕", "emoji": "🙋", "correct": true },
-        { "text": "自己躲起來不說", "emoji": "🫣" },
+        { "text": "自己躲起來不說", "emoji": "🙈" },
         { "text": "假裝不怕硬撐著", "emoji": "😬" }
       ],
       "explanation": "害怕的時候要說出來，爸爸媽媽會保護你、陪你，不用自己承受喔！"
@@ -1418,7 +1418,7 @@
         { "text": "跟同學說明原因，照原本說好的路線直接回家", "emoji": "🏠", "correct": true },
         { "text": "反正只是繞一下路，跟去便利商店應該沒關係", "emoji": "🏪" },
         { "text": "先去便利商店，回來再跟爸媽說", "emoji": "🤐" },
-        { "text": "讓同學自己去，自己躲起來等他", "emoji": "🫣" }
+        { "text": "讓同學自己去，自己躲起來等他", "emoji": "🙈" }
       ],
       "explanation": "突然改變回家的路線，家人會擔心找不到你，也可能發生意外沒人知道，說清楚原因、照原本說好的路線走才安全喔！",
       "level": 2
@@ -1446,7 +1446,7 @@
         { "text": "兩隻手都抓緊拉環或扶手", "emoji": "🤚", "correct": true },
         { "text": "一隻手抓扶手，另一隻手滑手機", "emoji": "📱" },
         { "text": "站穩就好，不用一直抓著", "emoji": "🧍" },
-        { "text": "蹲下來抱住旁邊乘客的腿", "emoji": "🫂" }
+        { "text": "蹲下來抱住旁邊乘客的腿", "emoji": "🤗" }
       ],
       "explanation": "公車緊急煞車的力道很大，只抓一隻手或不抓都很容易跌倒撞傷，一定要兩隻手抓緊拉環或扶手才安全喔！",
       "level": 2
@@ -1541,7 +1541,7 @@
       "id": "routine-21",
       "category": "routine",
       "question": "你有一筆存了很久的零用錢，同學一直慫恿你買一個很貴的扭蛋，但你原本想存錢買一直想要的畫冊，該怎麼辦？",
-      "image": "🪙🎁📖",
+      "image": "💰🎁📖",
       "options": [
         { "text": "想清楚自己原本的目標，禮貌拒絕同學的慫恿", "emoji": "🙅", "correct": true },
         { "text": "先買扭蛋，反正之後可以再存畫冊的錢", "emoji": "🎁" },
@@ -1586,7 +1586,7 @@
       "image": "🧹🏠🧒👶",
       "options": [
         { "text": "照原本的分配把自己負責的做完，或好好商量重新分配", "emoji": "🗣️", "correct": true },
-        { "text": "偷偷把自己的部分丟給弟弟妹妹做", "emoji": "🫣" },
+        { "text": "偷偷把自己的部分丟給弟弟妹妹做", "emoji": "🙈" },
         { "text": "隨便做一點意思意思就好", "emoji": "🤷" },
         { "text": "生氣不做，等別人來幫忙", "emoji": "😤" }
       ],
@@ -1744,7 +1744,7 @@
         { "text": "告訴大人，換穿別雙乾的鞋子或想辦法先烘乾", "emoji": "👟", "correct": true },
         { "text": "穿著濕鞋子去上學，反正走一走就乾了", "emoji": "🚶" },
         { "text": "塞衛生紙進去墊著就直接穿", "emoji": "🧻" },
-        { "text": "光腳穿拖鞋去上學", "emoji": "🩴" }
+        { "text": "光腳穿拖鞋去上學", "emoji": "👡" }
       ],
       "explanation": "長時間穿濕鞋子，腳丫子悶在潮濕的環境裡容易長細菌感染香港腳，發現鞋子沒乾要告訴大人換一雙乾的鞋，或想辦法先烘乾才健康喔！",
       "level": 2

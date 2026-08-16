@@ -192,7 +192,7 @@ const Gen = (() => {
   const wordPool = (cat, diff) => vocab[cat].filter(it => diff.hardWords || !it.hard);
 
   // 這些詞的 emoji 一張圖就是一堆（一串葡萄、一把薯條、兩顆櫻桃），不能拿來數數
-  const NOT_COUNTABLE = new Set(['grapes', 'blueberry', 'cherry', 'fries', 'popcorn', 'noodles', 'rice', 'milk', 'sushi']);
+  const NOT_COUNTABLE = new Set(['grapes', 'cherry', 'fries', 'popcorn', 'noodles', 'rice', 'milk', 'sushi']);
   const countablePool = (cat, diff) => wordPool(cat, diff).filter(it => !NOT_COUNTABLE.has(it.en));
 
   function genCounting(diff, used) {
