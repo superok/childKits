@@ -265,8 +265,8 @@ input { font-family: inherit; }
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 22px;
   width: 100%; max-width: 1000px;
-  flex: 1;
-  align-content: center;
+  flex: 0 1 auto;
+  margin: auto 0; /* 空間夠時置中；不夠時自動歸零，不會往上蓋住題目 */
 }
 .q-options.text-mode { grid-template-columns: 1fr; max-width: 700px; gap: 14px; }
 
@@ -577,6 +577,12 @@ html.no-flex-gap .mode-btn > * { margin-bottom: 2px; }
 }
 
 @media (max-height: 720px) {
+  .q-prompt-row { flex-wrap: nowrap; margin: 4px 0 8px; gap: 10px; }
+  .q-prompt { font-size: 1.5rem; }
+  .q-image { font-size: 2.4rem; margin: 2px 0; }
+  .q-image.many { font-size: 1.9rem; }
+  .quiz-main { padding-top: 6px; }
+  .replay-btn { width: 52px; height: 52px; font-size: 1.4rem; }
   .app-title { font-size: 1.9rem; margin: 6px 0 2px; }
   .home-hint { font-size: 1rem; margin-bottom: 10px; }
   .profile-card { width: 200px; padding: 16px 12px 12px; }
