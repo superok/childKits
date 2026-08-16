@@ -24,8 +24,11 @@ const Gen = (() => {
     animals:   { label: '動物',     others: ['fruits', 'vehicles', 'household', 'clothes'] },
     fruits:    { label: '水果',     others: ['animals', 'vehicles', 'household', 'clothes'] },
     vehicles:  { label: '交通工具', others: ['animals', 'fruits', 'foods', 'household', 'clothes'] },
-    clothes:   { label: '衣服',     others: ['animals', 'fruits', 'foods', 'vehicles', 'household'] },
-    household: { label: '生活用品', others: ['animals', 'fruits', 'foods', 'vehicles', 'clothes'] },
+    // 食物的干擾項不用動物：魚、雞也可以是食物，對小孩來說會有爭議
+    foods:     { label: '食物',     others: ['vehicles', 'household', 'clothes'] },
+    // 衣服與生活用品互相重疊（衣服本來就是生活用品），所以彼此不當干擾項
+    clothes:   { label: '衣服',     others: ['animals', 'fruits', 'foods', 'vehicles'] },
+    household: { label: '生活用品', others: ['animals', 'fruits', 'foods', 'vehicles'] },
   };
 
   const TYPE_INFO = {
@@ -333,7 +336,8 @@ const Gen = (() => {
     const cat = pick(Object.keys(ODD_CATS).filter(c => cogCats.includes(c)));
     if (!cat) return null;
     const info = ODD_CATS[cat];
-    const sameAll = wordPool(cat, diff);
+    // 同類成員要能代表該類別，否則題目會說不通（例：把氣球當成「生活用品」）
+    const sameAll = wordPool(cat, diff).filter(it => !it.notTypical);
     if (sameAll.length < diff.options) return null;
     const otherCats = info.others.filter(c => cogCats.includes(c) && wordPool(c, diff).length);
     if (!otherCats.length) return null;

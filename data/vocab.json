@@ -817,12 +817,14 @@
     {
       "zh": "氣球",
       "en": "balloon",
-      "emoji": "🎈"
+      "emoji": "🎈",
+      "notTypical": true
     },
     {
       "zh": "禮物",
       "en": "present",
-      "emoji": "🎁"
+      "emoji": "🎁",
+      "notTypical": true
     },
     {
       "zh": "電視",
@@ -848,19 +850,22 @@
       "zh": "顯微鏡",
       "en": "microscope",
       "emoji": "🔬",
-      "hard": true
+      "hard": true,
+      "notTypical": true
     },
     {
       "zh": "望遠鏡",
       "en": "telescope",
       "emoji": "🔭",
-      "hard": true
+      "hard": true,
+      "notTypical": true
     },
     {
       "zh": "磁鐵",
       "en": "magnet",
       "emoji": "🧲",
-      "hard": true
+      "hard": true,
+      "notTypical": true
     },
     {
       "zh": "電池",
@@ -872,7 +877,8 @@
       "zh": "指南針",
       "en": "compass",
       "emoji": "🧭",
-      "hard": true
+      "hard": true,
+      "notTypical": true
     },
     {
       "zh": "溫度計",
@@ -884,13 +890,15 @@
       "zh": "燈籠",
       "en": "lantern",
       "emoji": "🏮",
-      "hard": true
+      "hard": true,
+      "notTypical": true
     },
     {
       "zh": "算盤",
       "en": "abacus",
       "emoji": "🧮",
-      "hard": true
+      "hard": true,
+      "notTypical": true
     }
   ],
   "clothes": [
@@ -942,7 +950,8 @@
     {
       "zh": "眼鏡",
       "en": "glasses",
-      "emoji": "👓"
+      "emoji": "👓",
+      "notTypical": true
     }
   ],
   "colors": [
