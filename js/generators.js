@@ -13,10 +13,19 @@ const Gen = (() => {
    * - sitLevel2：情境題抽到進階題（level 2）的偏好機率（0 = 完全不出）
    */
   const DIFF = {
-    1: { label: '簡單 🌱', options: 3, countMax: 5,  addMax: 5,  sub: false, mixedCount: 0,    missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0 },
+    1: { label: '簡單 🌱', options: 3, countMax: 5,  addMax: 8,  sub: false, mixedCount: 0,    missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0 },
     2: { label: '中等 🌿', options: 3, countMax: 10, addMax: 10, sub: true,  mixedCount: 0,    missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0 },
     3: { label: '挑戰 🌳', options: 4, countMax: 12, addMax: 20, sub: true,  mixedCount: 0.35, missing: 0.25, threeTerm: 0.2, hardWords: true,  sitLevel2: 0.5 },
     4: { label: '大師 🔥', options: 4, countMax: 15, addMax: 50, sub: true,  mixedCount: 0.6,  missing: 0.35, threeTerm: 0.3, hardWords: true,  sitLevel2: 0.75 },
+  };
+
+  // 找不同類：目標類別 → 可安全當干擾項的類別（避免語意重疊，例如水果也是食物）
+  const ODD_CATS = {
+    animals:   { label: '動物',     others: ['fruits', 'vehicles', 'household', 'clothes'] },
+    fruits:    { label: '水果',     others: ['animals', 'vehicles', 'household', 'clothes'] },
+    vehicles:  { label: '交通工具', others: ['animals', 'fruits', 'foods', 'household', 'clothes'] },
+    clothes:   { label: '衣服',     others: ['animals', 'fruits', 'foods', 'vehicles', 'household'] },
+    household: { label: '生活用品', others: ['animals', 'fruits', 'foods', 'vehicles', 'clothes'] },
   };
 
   const TYPE_INFO = {
@@ -26,6 +35,7 @@ const Gen = (() => {
     counting:   { label: '🔢 數數' },
     arithmetic: { label: '➕ 加減' },
     english:    { label: '🔤 英文單字' },
+    oddone:     { label: '🔍 找不同類' },
     situations: { label: '🚸 生活情境' },
   };
 
@@ -37,6 +47,7 @@ const Gen = (() => {
   const SIG_PREFIX = {
     cognition: 'cog:', colors: 'color:', shapes: 'shape:',
     counting: 'count:', arithmetic: 'math:', english: 'en:', situations: 'sit:',
+    oddone: 'odd:',
   };
 
   let cogCats = [];
@@ -87,6 +98,14 @@ const Gen = (() => {
       heart: `<path d="M50 88 C 20 62, 2 40, 12 22 C 20 8, 40 10, 50 26 C 60 10, 80 8, 88 22 C 98 40, 80 62, 50 88 Z" ${s}/>`,
       diamond: `<polygon points="50,6 90,50 50,94 10,50" ${s}/>`,
       oval: `<ellipse cx="50" cy="50" rx="44" ry="30" ${s}/>`,
+      pentagon: `<polygon points="50,6 94,38 77,90 23,90 6,38" ${s}/>`,
+      hexagon: `<polygon points="50,5 89,27 89,73 50,95 11,73 11,27" ${s}/>`,
+      cross: `<polygon points="35,8 65,8 65,35 92,35 92,65 65,65 65,92 35,92 35,65 8,65 8,35 35,35" ${s}/>`,
+      arrow: `<polygon points="8,38 55,38 55,14 94,50 55,86 55,62 8,62" ${s}/>`,
+      trapezoid: `<polygon points="26,20 74,20 94,80 6,80" ${s}/>`,
+      semicircle: `<path d="M6 72 A 44 44 0 0 1 94 72 Z" ${s}/>`,
+      ring: `<path d="M50 8 A 42 42 0 1 1 49.9 8 Z M50 30 A 20 20 0 1 0 50.1 30 Z" fill-rule="evenodd" ${s}/>`,
+      crescent: `<path d="M62 8 A 42 42 0 1 0 62 92 A 34 34 0 1 1 62 8 Z" ${s}/>`,
     };
     return `<svg viewBox="0 0 100 100" aria-hidden="true">${shapes[kind] || shapes.circle}</svg>`;
   }
@@ -116,7 +135,7 @@ const Gen = (() => {
   }
 
   function genColors(diff, used) {
-    const pool = vocab.colors;
+    const pool = wordPool('colors', diff);
     const fresh = pool.filter(c => !used.has(`color:${c.en}`));
     if (!fresh.length) return null;
     const target = pick(fresh);
@@ -136,7 +155,7 @@ const Gen = (() => {
   }
 
   function genShapes(diff, used) {
-    const pool = vocab.shapes;
+    const pool = wordPool('shapes', diff);
     const fresh = pool.filter(sh => !used.has(`shape:${sh.en}`));
     if (!fresh.length) return null;
     const target = pick(fresh);
@@ -166,6 +185,7 @@ const Gen = (() => {
     count: (cat, it) => `audio/count/${wordKey(cat, it)}.mp3`,
     num: n => `audio/num/${n}.mp3`,
     frag: name => `audio/frag/${name}.mp3`,
+    odd: cat => `audio/odd/${cat}.mp3`,
   };
 
   // 依難度取詞：進階詞（hard: true）只在高難度出現
@@ -308,6 +328,39 @@ const Gen = (() => {
     };
   }
 
+  /** 找不同類：N-1 個同類 + 1 個異類，問「哪一個不是○○？」 */
+  function genOddOne(diff, used) {
+    const cat = pick(Object.keys(ODD_CATS).filter(c => cogCats.includes(c)));
+    if (!cat) return null;
+    const info = ODD_CATS[cat];
+    const sameAll = wordPool(cat, diff);
+    if (sameAll.length < diff.options) return null;
+    const otherCats = info.others.filter(c => cogCats.includes(c) && wordPool(c, diff).length);
+    if (!otherCats.length) return null;
+
+    const same = sample(sameAll, diff.options - 1);
+    const otherCat = pick(otherCats);
+    const odd = pick(wordPool(otherCat, diff));
+    const sig = `odd:${cat}:${odd.en}:${same.map(i => i.en).sort().join(',')}`;
+    if (used.has(sig)) return null;
+    used.add(sig);
+
+    return {
+      type: 'oddone',
+      prompt: `哪一個不是${info.label}？`,
+      speech: { text: `哪一個不是${info.label}？`, lang: 'zh-TW' },
+      image: null,
+      options: shuffle([
+        { kind: 'emoji', emoji: odd.emoji, correct: true },
+        ...same.map(it => ({ kind: 'emoji', emoji: it.emoji, correct: false })),
+      ]),
+      correctLabel: odd.zh,
+      audioSeq: [A.odd(cat)],
+      answerAudio: A.wordW(otherCat, odd),
+      explanation: null,
+    };
+  }
+
   function genSituation(diff, used) {
     const lvl = q => q.level || 1;
     // 低難度只出基本題；高難度依機率偏好進階題（level 2）
@@ -347,6 +400,7 @@ const Gen = (() => {
     counting: genCounting,
     arithmetic: genArithmetic,
     english: genEnglish,
+    oddone: genOddOne,
     situations: genSituation,
   };
 
