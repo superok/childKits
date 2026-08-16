@@ -4,7 +4,11 @@ const Store = (() => {
     profiles: 'quizkids.profiles.v1',
     scores: 'quizkids.scores.v1',
     battles: 'quizkids.battles.v1',
+    seen: 'quizkids.seen.v1',
   };
+
+  // 每位玩家記得最近出過的題目，避免連續幾輪一直遇到同樣的題
+  const SEEN_CAP = 400;
 
   const mem = {}; // localStorage 不可用時的備援
 
@@ -56,6 +60,9 @@ const Store = (() => {
     const scores = get(KEYS.scores, {});
     delete scores[id];
     set(KEYS.scores, scores);
+    const seen = get(KEYS.seen, {});
+    delete seen[id];
+    set(KEYS.seen, seen);
   }
 
   function getScores(profileId) {
@@ -77,6 +84,21 @@ const Store = (() => {
     return list.length ? list[0].score : null;
   }
 
+  /** 這位玩家最近出過的題目 signature（越後面越新） */
+  function getSeen(profileId) {
+    return get(KEYS.seen, {})[profileId] || [];
+  }
+
+  /** 記錄剛出過的題目；超過上限時淘汰最舊的 */
+  function addSeen(profileId, sigs) {
+    if (!sigs || !sigs.length) return;
+    const all = get(KEYS.seen, {});
+    const fresh = new Set(sigs);
+    const list = (all[profileId] || []).filter(s => !fresh.has(s)).concat(sigs);
+    all[profileId] = list.slice(-SEEN_CAP);
+    set(KEYS.seen, all);
+  }
+
   function getBattles() { return get(KEYS.battles, []); }
 
   function addBattle(entry) {
@@ -89,6 +111,7 @@ const Store = (() => {
     ALL_TYPES,
     getProfiles, saveProfiles, getProfile, upsertProfile, deleteProfile,
     getScores, addScore, bestScore,
+    getSeen, addSeen,
     getBattles, addBattle,
   };
 })();

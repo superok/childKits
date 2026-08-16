@@ -131,6 +131,7 @@ const Gen = (() => {
       image: null,
       options: shuffle([target, ...others].map(it => ({ kind: 'emoji', emoji: it.emoji, correct: it === target }))),
       correctLabel: target.zh,
+      sig: `cog:${cat}:${target.en}`,
       audioSeq: [A.wordQ(cat, target)],
       answerAudio: A.wordW(cat, target),
       explanation: null,
@@ -151,6 +152,7 @@ const Gen = (() => {
       image: null,
       options: shuffle([target, ...others].map(c => ({ kind: 'color', hex: c.hex, correct: c === target }))),
       correctLabel: target.zh,
+      sig: `color:${target.en}`,
       audioSeq: [A.wordQ('colors', target)],
       answerAudio: A.wordW('colors', target),
       explanation: null,
@@ -172,6 +174,7 @@ const Gen = (() => {
       image: null,
       options: shuffle([target, ...others].map(sh => ({ kind: 'shape', svg: shapeSVG(sh.svg, color), correct: sh === target }))),
       correctLabel: target.zh,
+      sig: `shape:${target.en}`,
       audioSeq: [A.wordQ('shapes', target)],
       answerAudio: A.wordW('shapes', target),
       explanation: null,
@@ -230,6 +233,7 @@ const Gen = (() => {
       image,
       options: numberOptions(n, diff.options, 1, diff.countMax + 3),
       correctLabel: `${n}`,
+      sig,
       audioSeq: [A.count(cat, item)],
       answerAudio: A.num(n),
       explanation: null,
@@ -304,6 +308,7 @@ const Gen = (() => {
       image,
       options: numberOptions(answer, diff.options, 0, diff.addMax + 5),
       correctLabel: `${answer}`,
+      sig,
       audioSeq,
       answerAudio: A.num(answer),
       explanation: null,
@@ -325,6 +330,7 @@ const Gen = (() => {
       image: null,
       options: shuffle([target, ...others].map(it => ({ kind: 'emoji', emoji: it.emoji, correct: it === target }))),
       correctLabel: target.en,
+      sig: `en:${target.en}`,
       audioSeq: [A.wordEQ(cat, target)],
       answerAudio: A.wordEW(cat, target),
       explanation: null,
@@ -359,6 +365,7 @@ const Gen = (() => {
         ...same.map(it => ({ kind: 'emoji', emoji: it.emoji, correct: false })),
       ]),
       correctLabel: odd.zh,
+      sig,
       audioSeq: [A.odd(cat)],
       answerAudio: A.wordW(otherCat, odd),
       explanation: null,
@@ -390,6 +397,7 @@ const Gen = (() => {
       image: q.image ? { kind: 'emoji', value: q.image } : null,
       options,
       correctLabel: correct.label,
+      sig: `sit:${q.id}`,
       audioSeq: [`audio/sit/${q.id}-q.mp3`, ...options.map(o => `audio/sit/${q.id}-o${o.origIdx}.mp3`)],
       answerAudio: `audio/sit/${q.id}-o${correct.origIdx}.mp3`,
       explainAudio: `audio/sit/${q.id}-e.mp3`,
@@ -434,20 +442,30 @@ const Gen = (() => {
     seq = seq.slice(0, count);
 
     const questions = [];
+    // 同一輪不出現相同的問句：不同題目可能共用同一句話
+    //（例：「哪一個不是動物？」選項不同、「數一數，有幾隻貓？」數量不同），
+    // 對小孩來說那仍然是「又是這題」。
+    const prompts = new Set();
+
     for (const type of seq) {
       let q = null;
+      let dupPrompt = null; // 真的湊不出新問句時的備案，確保題數不會短少
       // 只在啟用的題型內出題；全部出完就清紀錄重來（例：只玩顏色但選 30 題）
       for (let pass = 0; pass < 2 && !q; pass++) {
         const candidates = [type, ...shuffle(enabled.filter(t => t !== type))];
         for (const t of candidates) {
           for (let attempt = 0; attempt < 12 && !q; attempt++) {
-            q = GENERATORS[t](diff, used);
+            const cand = GENERATORS[t](diff, used);
+            if (!cand) continue;
+            if (prompts.has(cand.prompt)) { dupPrompt = dupPrompt || cand; continue; }
+            q = cand;
           }
           if (q) break;
         }
         if (!q && pass === 0) clearTypeSigs(used, enabled);
       }
-      if (q) questions.push(q);
+      q = q || dupPrompt;
+      if (q) { prompts.add(q.prompt); questions.push(q); }
     }
     return questions;
   }

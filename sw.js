@@ -1,5 +1,5 @@
 /* 離線快取：安裝時預快取所有資源，之後網路優先、離線退回快取 */
-const CACHE = 'quizkids-v25';
+const CACHE = 'quizkids-v26';
 const ASSETS = [
   './',
   './index.html',

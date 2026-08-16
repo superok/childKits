@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v25';
+  const APP_VERSION = 'v26';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -391,8 +391,15 @@
     if (!players.length) { goHome(); return; }
     const typesOverride = setup.category === 'mixed' ? null : [setup.category];
 
+    // 帶入最近出過的題目，讓這一輪盡量避開；題庫抽完時產生器會自動放寬
+    const seeded = () => {
+      const s = new Set();
+      for (const p of players) for (const sig of Store.getSeen(p.id)) s.add(sig);
+      return s;
+    };
+
     if (setup.mode === 'solo' || players.length === 1) {
-      const questions = Gen.buildRound(players[0], setup.count, new Set(), typesOverride);
+      const questions = Gen.buildRound(players[0], setup.count, seeded(), typesOverride);
       session = {
         mode: 'solo',
         players: [players[0]],
@@ -404,7 +411,7 @@
       showScreen('screen-quiz');
       renderQuestion();
     } else {
-      const used = new Set(); // 同一場不出重複題
+      const used = seeded(); // 同一場不出重複題，也避開最近出過的
       const perPlayer = players.map(p => Gen.buildRound(p, setup.count, used, typesOverride));
       const queue = [];
       for (let round = 0; round < setup.count; round++) {
@@ -530,6 +537,7 @@
     const { playerIdx, question } = session.queue[session.pos];
     const buttons = [...$('q-options').querySelectorAll('.opt-btn')];
     buttons.forEach(b => b.classList.add('disabled'));
+    if (question.sig) Store.addSeen(session.players[playerIdx].id, [question.sig]);
 
     let fbEmoji, fbText, speechText;
     let audioPaths = null; // 有預錄音檔時優先播放
