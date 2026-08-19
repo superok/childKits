@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v29';
+  const APP_VERSION = 'v30';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -60,6 +60,50 @@
     return [{ text: `${before}${profile.name}${after}`, lang: 'zh-TW' }];
   }
 
+  /**
+   * 量出真正看得到的高度寫進 --app-h。
+   * 舊 iOS Safari 的 100vh 是「工具列收起來時」的高度，而 body 又不能捲，
+   * 畫面最下面那一截會躲在瀏覽器介面後面而且捲不到，底部按鈕就會消失且點不到。
+   */
+  function syncViewportHeight() {
+    const vv = window.visualViewport;
+    const h = Math.round((vv && vv.height) || window.innerHeight || 0);
+    if (h > 0) document.documentElement.style.setProperty('--app-h', h + 'px');
+  }
+
+  /**
+   * 自動縮放安全網：內容排不下時依序套用 fit-1、fit-2 兩級補償。
+   * media query 只能猜螢幕尺寸，這裡是真的量完才決定，沒測過的裝置也不會漏。
+   */
+  const FIT_LEVELS = ['fit-1', 'fit-2'];
+  function fitScreen(el) {
+    const screen = el || document.querySelector('.screen.active');
+    if (!screen) return;
+    screen.classList.remove(...FIT_LEVELS);
+    const body = screen.querySelector('.screen-body');
+    if (!body) return;
+    for (const level of FIT_LEVELS) {
+      // 內容塞得進可捲區就不用縮
+      if (body.scrollHeight <= body.clientHeight + 1) return;
+      screen.classList.add(level);
+    }
+  }
+
+  /** 對話框內容過長時也縮一級（只縮間距與字級，按鈕列本來就釘在底部） */
+  function fitDialogs() {
+    document.querySelectorAll('.overlay:not(.hidden) .dialog').forEach(d => {
+      const body = d.querySelector('.dialog-body');
+      if (!body) return;
+      d.classList.toggle('dialog-tight', body.scrollHeight > body.clientHeight + 1);
+    });
+  }
+
+  function relayout() {
+    syncViewportHeight();
+    fitScreen();
+    fitDialogs();
+  }
+
   /** 偵測 flex gap 支援（iOS 14.1 以前沒有），不支援就讓 CSS 改用 margin 排版 */
   function detectFlexGap() {
     const probe = document.createElement('div');
@@ -97,7 +141,12 @@
   /* ===== 畫面切換 ===== */
   function showScreen(id) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    $(id).classList.add('active');
+    const el = $(id);
+    el.classList.add('active');
+    el.classList.remove(...FIT_LEVELS);
+    // 內容剛換上去，等瀏覽器排版完再量
+    fitScreen(el);
+    if (window.requestAnimationFrame) requestAnimationFrame(() => fitScreen(el));
   }
 
   function setTheme(el, color) {
@@ -139,6 +188,7 @@
     add.innerHTML = '<div class="add-plus">＋</div><div>新增玩家</div>';
     add.addEventListener('click', () => openEdit(null));
     grid.appendChild(add);
+    fitScreen($('screen-home'));
   }
 
   function goHome() {
@@ -171,6 +221,7 @@
     $('btn-edit-delete').classList.toggle('hidden', !id || Store.getProfiles().length <= 1);
     renderEditPickers();
     $('modal-edit').classList.remove('hidden');
+    fitDialogs();
   }
 
   function renderEditPickers() {
@@ -334,6 +385,7 @@
         listEl.appendChild(b);
       }
     }
+    fitDialogs();
   }
 
   /* ===== 對戰設定 ===== */
@@ -407,6 +459,7 @@
       b.addEventListener('click', () => { Sfx.tap(); setup.count = n; renderSetup(); });
       counts.appendChild(b);
     }
+    fitScreen($('screen-setup'));
   }
 
   /* ===== 建立一輪 ===== */
@@ -863,6 +916,7 @@
       Sfx.unlock();
       renderVoiceModal();
       $('modal-voice').classList.remove('hidden');
+      fitDialogs();
       // iOS 的語音清單常在第一次 speak 後才載入，稍後重畫一次
       setTimeout(renderVoiceModal, 600);
     });
@@ -914,10 +968,26 @@
     });
   }
 
+  /** 視窗尺寸／方向／Safari 工具列收合時重新量一次 */
+  function bindRelayout() {
+    let timer = null;
+    const soon = () => { clearTimeout(timer); timer = setTimeout(relayout, 120); };
+    window.addEventListener('resize', soon);
+    window.addEventListener('orientationchange', () => { soon(); setTimeout(relayout, 400); });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', soon);
+      window.visualViewport.addEventListener('scroll', soon); // 工具列收合會觸發
+    }
+  }
+
   /* ===== 啟動 ===== */
   async function init() {
+    syncViewportHeight();
     detectFlexGap();
+    bindRelayout();
     $('app-version').textContent = APP_VERSION;
+    // Safari 分頁裡玩時，工具列會吃掉畫面下緣，提示改用主畫面圖示開
+    if (window.navigator.standalone === false) $('home-hint-standalone').classList.remove('hidden');
     bindEvents();
     try {
       const [vocab, situations] = await Promise.all([

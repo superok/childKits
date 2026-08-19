@@ -25,22 +25,27 @@
 
   <!-- 首頁：選擇玩家 -->
   <div id="screen-home" class="screen">
-    <h1 class="app-title">🎈 小小問答樂園</h1>
-    <p class="home-hint">點自己的頭像開始玩！</p>
-    <div id="profile-grid" class="profile-grid"></div>
+    <div class="screen-body">
+      <h1 class="app-title">🎈 小小問答樂園</h1>
+      <p class="home-hint">點自己的頭像開始玩！</p>
+      <div id="profile-grid" class="profile-grid"></div>
+    </div>
     <div class="home-actions">
       <button id="btn-versus" class="big-btn versus-btn">⚔️ 一起玩（輪流答題）</button>
       <button id="btn-board" class="big-btn board-btn">🏆 排行榜</button>
       <button id="btn-voice" class="big-btn ghost-btn">🔊 語音設定</button>
     </div>
+    <div id="home-hint-standalone" class="standalone-hint hidden">💡 點 Safari 的分享 → 「加入主畫面」，畫面會變大、按鈕更好按</div>
     <div id="app-version" class="app-version"></div>
   </div>
 
   <!-- 對戰設定：選玩家 -->
   <div id="screen-versus-setup" class="screen">
-    <h1 class="app-title">⚔️ 誰要一起玩？</h1>
-    <p class="home-hint">點頭像選擇玩家（至少 2 位），一人一題輪流答！</p>
-    <div id="versus-grid" class="profile-grid"></div>
+    <div class="screen-body">
+      <h1 class="app-title">⚔️ 誰要一起玩？</h1>
+      <p class="home-hint">點頭像選擇玩家（至少 2 位），一人一題輪流答！</p>
+      <div id="versus-grid" class="profile-grid"></div>
+    </div>
     <div class="home-actions">
       <button id="btn-versus-start" class="big-btn versus-btn" disabled>開始對戰 ▶</button>
       <button class="big-btn ghost-btn btn-go-home">↩ 回首頁</button>
@@ -49,9 +54,11 @@
 
   <!-- 選題庫與題數 -->
   <div id="screen-setup" class="screen">
-    <h1 class="app-title">要玩什麼題目？</h1>
-    <div id="setup-players" class="setup-players"></div>
-    <div id="setup-cats" class="cat-grid"></div>
+    <div class="screen-body">
+      <h1 class="app-title">要玩什麼題目？</h1>
+      <div id="setup-players" class="setup-players"></div>
+      <div id="setup-cats" class="cat-grid"></div>
+    </div>
     <h2 class="setup-sub" id="setup-count-title">要玩幾題？</h2>
     <div id="setup-counts" class="count-row"></div>
     <div class="home-actions">
@@ -90,7 +97,9 @@
 
   <!-- 結果畫面 -->
   <div id="screen-results" class="screen">
-    <div id="results-box" class="results-box"></div>
+    <div class="screen-body">
+      <div id="results-box" class="results-box"></div>
+    </div>
     <div class="home-actions">
       <button id="btn-again" class="big-btn versus-btn">🔄 再玩一次</button>
       <button class="big-btn board-btn btn-go-board">🏆 排行榜</button>
@@ -100,8 +109,10 @@
 
   <!-- 排行榜 -->
   <div id="screen-board" class="screen">
-    <h1 class="app-title">🏆 排行榜</h1>
-    <div id="board-content" class="board-content"></div>
+    <div class="screen-body">
+      <h1 class="app-title">🏆 排行榜</h1>
+      <div id="board-content" class="board-content"></div>
+    </div>
     <div class="home-actions">
       <button class="big-btn ghost-btn btn-go-home">↩ 回首頁</button>
     </div>
@@ -119,11 +130,15 @@
   <!-- 離開確認 -->
   <div id="overlay-quit" class="overlay hidden">
     <div class="dialog">
-      <div class="dialog-title">要離開遊戲嗎？</div>
-      <div class="dialog-sub">這一輪的分數不會被記錄喔</div>
-      <div class="dialog-actions">
-        <button id="btn-quit-stay" class="big-btn versus-btn">繼續玩</button>
-        <button id="btn-quit-leave" class="big-btn ghost-btn">離開</button>
+      <div class="dialog-body">
+        <div class="dialog-title">要離開遊戲嗎？</div>
+        <div class="dialog-sub">這一輪的分數不會被記錄喔</div>
+      </div>
+      <div class="dialog-foot">
+        <div class="dialog-actions">
+          <button id="btn-quit-stay" class="big-btn versus-btn">繼續玩</button>
+          <button id="btn-quit-leave" class="big-btn ghost-btn">離開</button>
+        </div>
       </div>
     </div>
   </div>
@@ -133,22 +148,26 @@
     <div class="dialog edit-dialog">
       <div class="dialog-title">🔊 語音設定</div>
 
-      <label class="edit-label">旁白</label>
-      <div id="voice-mode" class="mode-row"></div>
+      <div class="dialog-body">
+        <label class="edit-label">旁白</label>
+        <div id="voice-mode" class="mode-row"></div>
 
-      <label class="edit-label">語速（錄音與裝置語音都會套用）</label>
-      <div id="voice-rate" class="seg-row"></div>
+        <label class="edit-label">語速（錄音與裝置語音都會套用）</label>
+        <div id="voice-rate" class="seg-row"></div>
 
-      <div id="voice-device-section" class="hidden">
-        <label class="edit-label">要用哪個裝置語音？</label>
-        <div class="voice-sublabel">中文</div>
-        <div id="voice-zh" class="voice-list"></div>
-        <div class="voice-sublabel">英文</div>
-        <div id="voice-en" class="voice-list"></div>
+        <div id="voice-device-section" class="hidden">
+          <label class="edit-label">要用哪個裝置語音？</label>
+          <div class="voice-sublabel">中文</div>
+          <div id="voice-zh" class="voice-list"></div>
+          <div class="voice-sublabel">英文</div>
+          <div id="voice-en" class="voice-list"></div>
+        </div>
       </div>
 
-      <div class="dialog-actions">
-        <button id="btn-voice-done" class="big-btn versus-btn">完成</button>
+      <div class="dialog-foot">
+        <div class="dialog-actions">
+          <button id="btn-voice-done" class="big-btn versus-btn">完成</button>
+        </div>
       </div>
     </div>
   </div>
@@ -158,6 +177,7 @@
     <div class="dialog edit-dialog">
       <div class="dialog-title" id="edit-title">編輯玩家</div>
 
+      <div class="dialog-body">
       <label class="edit-label">名字</label>
       <input id="edit-name" class="edit-input" type="text" maxlength="8">
 
@@ -176,12 +196,15 @@
 
       <label class="edit-label">「綜合題」要包含的題型（至少勾一種）</label>
       <div id="edit-types" class="type-grid"></div>
-
-      <div class="dialog-actions">
-        <button id="btn-edit-save" class="big-btn versus-btn">儲存</button>
-        <button id="btn-edit-cancel" class="big-btn ghost-btn">取消</button>
       </div>
-      <button id="btn-edit-delete" class="delete-link">刪除這位玩家</button>
+
+      <div class="dialog-foot">
+        <div class="dialog-actions">
+          <button id="btn-edit-save" class="big-btn versus-btn">儲存</button>
+          <button id="btn-edit-cancel" class="big-btn ghost-btn">取消</button>
+        </div>
+        <button id="btn-edit-delete" class="delete-link">刪除這位玩家</button>
+      </div>
     </div>
   </div>
 

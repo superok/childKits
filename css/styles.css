@@ -21,21 +21,38 @@ input { font-family: inherit; }
 
 .hidden { display: none !important; }
 
-/* ===== 畫面切換 ===== */
+/* 真實可視高度：舊 iOS Safari 的 100vh 是「工具列收起來時」的高度，
+   底下那一截會躲在瀏覽器介面後面而且捲不到，所以由 JS 量出來寫進 --app-h */
+:root { --app-h: 100vh; }
+
+/* ===== 畫面切換 =====
+   每個畫面固定成三段：標題／可捲內容（.screen-body）／釘在下方的按鈕列。
+   會捲的只有中間，底部按鈕不管內容多長都不會被推出畫面。 */
 .screen {
   display: none;
   height: 100vh;
   height: 100dvh;
-  overflow-y: auto;
+  height: var(--app-h);
+  overflow: hidden;
   flex-direction: column;
   align-items: center;
   padding: max(16px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
 }
 .screen.active { display: flex; }
-/* 彈性墊片：空間夠時把內容推到正中；內容過高時縮到 0、改為從頂端捲動 */
-.screen::before, .screen::after { content: ''; flex: 1 1 0; }
 /* 內容本身不可被壓扁（舊版 WebKit 會壓縮 flex 子項而不是出捲軸） */
 .screen > * { flex-shrink: 0; }
+
+.screen-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+/* 彈性墊片：空間夠時把內容推到正中；內容過高時縮到 0、改為從頂端捲動 */
+.screen-body::before, .screen-body::after { content: ''; flex: 1 1 0; }
+.screen-body > * { flex-shrink: 0; }
 
 .loading-box { margin: auto; text-align: center; font-size: 1.4rem; }
 .loading-emoji { font-size: 4rem; animation: bounce 1s infinite; }
@@ -56,8 +73,6 @@ input { font-family: inherit; }
   justify-content: center;
   align-items: stretch;
   max-width: 900px;
-  min-height: 0;
-  overflow-y: auto;
 }
 
 .profile-card {
@@ -108,10 +123,13 @@ input { font-family: inherit; }
 .profile-card.selected .sel-mark { display: block; }
 
 /* ===== 按鈕 ===== */
+/* 動作列：永遠釘在畫面下方，不隨內容捲動 */
 .home-actions {
   display: flex; flex-wrap: wrap; gap: 16px;
-  justify-content: center; margin-top: 24px;
-  flex-shrink: 0;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 100%;
+  padding-top: 16px;
 }
 
 .big-btn {
@@ -139,7 +157,12 @@ input { font-family: inherit; }
 
 .delete-link { margin-top: 14px; color: #c0392b; text-decoration: underline; font-size: .95rem; }
 
-.app-version { margin-top: 14px; font-size: .8rem; color: #c9b696; }
+.app-version { margin-top: 10px; font-size: .8rem; color: #c9b696; }
+.standalone-hint {
+  margin-top: 10px; font-size: .9rem; color: #a08a6d;
+  text-align: center; max-width: 560px;
+}
+.screen.fit-2 .standalone-hint { display: none; }
 
 /* ===== 選題庫與題數 ===== */
 .setup-players { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 12px; }
@@ -159,8 +182,6 @@ input { font-family: inherit; }
   gap: 10px;
   justify-content: center;
   width: 100%;
-  min-height: 0;
-  overflow-y: auto;
 }
 .cat-card {
   background: #fff;
@@ -192,11 +213,8 @@ input { font-family: inherit; }
 .count-btn:active { transform: scale(.95); }
 .count-btn.selected { border-color: #1d6fd6; background: #e3efff; }
 
-/* 題庫卡片放不下時由自己捲動，下方的題數與開始按鈕永遠留在畫面上 */
-#screen-setup .cat-grid { flex-shrink: 1; }
 
 /* ===== 答題畫面 ===== */
-#screen-quiz::before, #screen-quiz::after { content: none; }
 #screen-quiz {
   overflow: hidden;
   padding: 0;
@@ -322,7 +340,7 @@ input { font-family: inherit; }
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
   gap: 8px 20px;
   max-height: 40vh;
-  max-height: 40dvh;
+  max-height: calc(var(--app-h) * .4);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   animation: slideup .25s;
@@ -334,7 +352,9 @@ input { font-family: inherit; }
 
 /* ===== 過場與對話框 ===== */
 .overlay {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 50;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  height: 100vh;
+  height: var(--app-h);
   background: rgba(58,46,42,.55);
   display: flex; align-items: flex-start; justify-content: center;
   padding: 24px;
@@ -353,17 +373,44 @@ input { font-family: inherit; }
 }
 .turn-text { font-size: 3.2rem; font-weight: 900; margin-bottom: 36px; text-shadow: 0 3px 0 rgba(0,0,0,.15); }
 
+/* 對話框也是三段式：標題／可捲內容／釘在對話框底部的按鈕 */
 .dialog {
-  margin: auto; /* 空間夠時置中；內容過高時貼頂可捲動 */
+  margin: auto; /* 空間夠時置中；內容過高時貼頂 */
   flex-shrink: 0;
   background: #fff; border-radius: 28px;
-  padding: 28px 26px; max-width: 460px; width: 100%;
+  padding: 24px 26px; max-width: 460px; width: 100%;
   text-align: center;
-  max-height: 88vh; max-height: 88dvh; overflow-y: auto;
+  max-height: 88vh;
+  max-height: calc(var(--app-h) * .88);
+  display: flex; flex-direction: column;
+  overflow: hidden;
 }
-.dialog-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 6px; }
+.dialog > * { flex-shrink: 0; }
+.dialog-body {
+  flex: 1 1 auto; min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.dialog-body > * { flex-shrink: 0; }
+.dialog-foot {
+  flex: 0 0 auto;
+  background: #fff;
+  padding-top: 14px;
+  border-top: 2px solid #f2e9da;
+}
+/* 對話框內容捲不完時整體收緊一點，讓可讀區域多一些 */
+.dialog.dialog-tight { padding: 16px 20px; }
+.dialog.dialog-tight .dialog-title { font-size: 1.25rem; margin-bottom: 6px; }
+.dialog.dialog-tight .edit-label { margin: 10px 0 5px; font-size: 1rem; }
+.dialog.dialog-tight .edit-input { font-size: 1.25rem; padding: 10px 14px; }
+.dialog.dialog-tight .picker-item { width: 54px; height: 54px; font-size: 1.6rem; }
+.dialog.dialog-tight .seg-btn,
+.dialog.dialog-tight .type-btn { padding: 12px 8px; font-size: 1.05rem; }
+.dialog.dialog-tight .mode-btn { padding: 10px 14px; }
+.dialog.dialog-tight .dialog-foot { padding-top: 10px; }
+.dialog-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 10px; }
 .dialog-sub { color: #8a6f56; margin-bottom: 18px; }
-.dialog-actions { display: flex; gap: 14px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+.dialog-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
 
 /* ===== 編輯玩家 ===== */
 .edit-dialog { text-align: left; max-width: 560px; }
@@ -437,7 +484,7 @@ input { font-family: inherit; }
 .vs-crown { font-size: 1.8rem; }
 
 /* ===== 排行榜 ===== */
-.board-content { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 22px; flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+.board-content { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 22px; }
 .board-section {
   flex-shrink: 0;
   background: #fff; border-radius: 24px; padding: 18px 22px;
@@ -526,6 +573,63 @@ input { font-family: inherit; }
 }
 
 
+/* ===== 自動縮放安全網 =====
+   media query 只能猜螢幕尺寸，遇到沒測過的裝置、系統放大字級、或內容特別長時仍可能排不下。
+   JS 量到內容溢出就依序加上 fit-1 / fit-2，只縮「不是觸控目標」的東西：
+   標題、提示、間距、頭像。按鈕本身維持 44px 以上的觸控範圍。 */
+.screen.fit-1 .app-title { font-size: 1.7rem; margin: 6px 0 2px; }
+.screen.fit-1 .home-hint { font-size: .95rem; margin-bottom: 8px; }
+.screen.fit-1 .profile-grid { gap: 12px; }
+.screen.fit-1 .profile-card { width: 200px; padding: 14px 10px 10px; }
+.screen.fit-1 .profile-avatar { width: 92px; height: 92px; font-size: 3rem; margin-bottom: 6px; }
+.screen.fit-1 .profile-name { font-size: 1.3rem; }
+.screen.fit-1 .profile-best { font-size: .9rem; }
+.screen.fit-1 .profile-card.add-card { min-height: 150px; font-size: 1rem; }
+.screen.fit-1 .add-plus { font-size: 2.4rem; }
+.screen.fit-1 .cat-card { min-height: 68px; font-size: .88rem; padding: 6px 4px; }
+.screen.fit-1 .cat-card .cat-emoji { font-size: 1.7rem; }
+.screen.fit-1 .setup-sub { font-size: 1rem; margin: 6px 0 4px; }
+.screen.fit-1 .setup-players { margin-bottom: 6px; }
+.screen.fit-1 .setup-player-chip { font-size: 1.1rem; padding: 6px 14px; }
+.screen.fit-1 .count-btn { padding: 10px 22px; font-size: 1.1rem; }
+.screen.fit-1 .home-actions { gap: 10px; padding-top: 10px; }
+.screen.fit-1 .app-version { margin-top: 6px; }
+.screen.fit-1 .results-stars { font-size: 2.6rem; margin: 4px 0; }
+.screen.fit-1 .results-title { font-size: 1.7rem; }
+.screen.fit-1 .results-score { font-size: 3rem; }
+.screen.fit-1 .results-sub { font-size: 1.1rem; }
+.screen.fit-1 .vs-result-row { padding: 8px 16px; margin: 6px auto; font-size: 1.2rem; }
+.screen.fit-1 .board-content { gap: 14px; }
+.screen.fit-1 .board-section { padding: 12px 16px; }
+
+.screen.fit-2 .app-title { font-size: 1.35rem; margin: 2px 0; }
+.screen.fit-2 .home-hint { font-size: .85rem; margin-bottom: 5px; }
+.screen.fit-2 .app-version { display: none; }
+.screen.fit-2 .profile-grid { gap: 8px; }
+.screen.fit-2 .profile-card { width: 158px; padding: 10px 8px 8px; border-width: 4px; }
+.screen.fit-2 .profile-avatar { width: 66px; height: 66px; font-size: 2.1rem; margin-bottom: 4px; }
+.screen.fit-2 .profile-name { font-size: 1.1rem; }
+.screen.fit-2 .profile-best { font-size: .8rem; margin-top: 2px; }
+.screen.fit-2 .profile-card.add-card { min-height: 110px; font-size: .9rem; }
+.screen.fit-2 .add-plus { font-size: 1.8rem; }
+.screen.fit-2 .cat-card { min-height: 56px; font-size: .8rem; padding: 4px 3px; }
+.screen.fit-2 .cat-card .cat-emoji { font-size: 1.4rem; }
+.screen.fit-2 .setup-sub { font-size: .9rem; margin: 4px 0 3px; }
+.screen.fit-2 .setup-player-chip { font-size: 1rem; padding: 4px 12px; }
+.screen.fit-2 .setup-player-chip .chip-avatar { font-size: 1.4rem; }
+.screen.fit-2 .count-btn { padding: 9px 18px; font-size: 1rem; }
+.screen.fit-2 .home-actions { gap: 8px; padding-top: 8px; }
+.screen.fit-2 .results-stars { font-size: 2rem; margin: 2px 0; }
+.screen.fit-2 .results-title { font-size: 1.35rem; }
+.screen.fit-2 .results-score { font-size: 2.2rem; margin: 2px 0; }
+.screen.fit-2 .results-sub { font-size: 1rem; }
+.screen.fit-2 .vs-result-row { padding: 6px 12px; margin: 5px auto; font-size: 1.05rem; }
+.screen.fit-2 .board-content { gap: 10px; }
+.screen.fit-2 .board-section { padding: 9px 12px; }
+.screen.fit-2 .board-row { padding: 5px 4px; font-size: 1rem; }
+/* 觸控目標的保底：縮到最小也還有 44px 可以按 */
+.screen.fit-2 .big-btn { font-size: 1.05rem; padding: 12px 22px; }
+
 /* ===== 舊 Safari（iOS < 14.1）沒有 flex gap：改用 margin 補間距 ===== */
 /* 先把 flex 容器的 gap 歸零（grid 的 gap 舊版支援，不動），避免偵測誤判時間距加倍 */
 html.no-flex-gap .profile-grid,
@@ -611,7 +715,7 @@ html.no-flex-gap .mode-btn > * { margin-bottom: 2px; }
   .q-options.text-mode { gap: 10px; }
   .q-options.text-mode .opt-btn { min-height: 64px; font-size: 1.4rem; padding: 10px 14px; }
   .q-options.text-mode .opt-btn .opt-emoji { font-size: 2.2rem; }
-  .feedback { max-height: 42vh; padding: 10px 18px calc(10px + env(safe-area-inset-bottom)); }
+  .feedback { max-height: calc(var(--app-h) * .42); padding: 10px 18px calc(10px + env(safe-area-inset-bottom)); }
   .feedback-emoji { font-size: 2.2rem; }
   .feedback-text { font-size: 1.35rem; }
   .feedback-explain { font-size: 1.1rem; }
