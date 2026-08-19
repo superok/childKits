@@ -7,17 +7,34 @@ const Gen = (() => {
    * 難度分級：
    * - options：選項數
    * - countMax / addMax / sub：數數上限、加減數字範圍、是否出減法
-   * - mixedCount：數數題混入干擾圖示的機率（要從一堆裡只數目標物）
+   * - countMix：數數題各種玩法的權重（見 COUNT_VARIANTS）
    * - missing / threeTerm：加減題出「填空（3+?=8）」與「三個數連加」的機率
    * - hardWords：認知／英文題是否納入進階詞彙（vocab 裡標 hard 的詞）
    * - sitLevel2：情境題抽到進階題（level 2）的偏好機率（0 = 完全不出）
+   *
+   * 數數題刻意不用「數量變多」來加難度：圖示一多就得縮小，反而變成考眼力，
+   * 排版也撐不下。上限固定 10 個，改用不同的數學玩法往上加深。
    */
   const DIFF = {
-    1: { label: '簡單 🌱', options: 3, countMax: 5,  addMax: 8,  sub: false, mixedCount: 0,    missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0 },
-    2: { label: '中等 🌿', options: 3, countMax: 10, addMax: 10, sub: true,  mixedCount: 0,    missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0 },
-    3: { label: '挑戰 🌳', options: 4, countMax: 12, addMax: 20, sub: true,  mixedCount: 0.35, missing: 0.25, threeTerm: 0.2, hardWords: true,  sitLevel2: 0.5 },
-    4: { label: '大師 🔥', options: 4, countMax: 15, addMax: 50, sub: true,  mixedCount: 0.6,  missing: 0.35, threeTerm: 0.3, hardWords: true,  sitLevel2: 0.75 },
+    1: { label: '簡單 🌱', options: 3, countMax: 5,  addMax: 8,  sub: false, missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0,
+         countMix: { single: 1 } },
+    2: { label: '中等 🌿', options: 3, countMax: 8,  addMax: 10, sub: true,  missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0,
+         countMix: { single: 0.6, ordinal: 0.25, total: 0.15 } },
+    3: { label: '挑戰 🌳', options: 4, countMax: 10, addMax: 20, sub: true,  missing: 0.25, threeTerm: 0.2, hardWords: true,  sitLevel2: 0.5,
+         countMix: { single: 0.3, mixed: 0.25, total: 0.15, most: 0.15, ordinal: 0.15 } },
+    4: { label: '大師 🔥', options: 4, countMax: 10, addMax: 50, sub: true,  missing: 0.35, threeTerm: 0.3, hardWords: true,  sitLevel2: 0.75,
+         countMix: { single: 0.12, mixed: 0.25, total: 0.23, most: 0.23, ordinal: 0.17 } },
   };
+
+  /**
+   * 數數題的五種玩法：
+   * - single ：一種東西，數出數量（最基本）
+   * - mixed  ：混入另一種當干擾，只數目標物
+   * - total  ：兩種混排，數出總共幾個（跨類加總）
+   * - most   ：三～四種混排，比出哪一種最多（要數完每一種再比較）
+   * - ordinal：一排不同東西，說出從左邊數過來第幾個是什麼（序數）
+   */
+  const COUNT_VARIANTS = ['single', 'mixed', 'total', 'most', 'ordinal'];
 
   // 找不同類：目標類別 → 可安全當干擾項的類別（避免語意重疊，例如水果也是食物）
   const ODD_CATS = {
@@ -54,7 +71,8 @@ const Gen = (() => {
   };
 
   let cogCats = [];
-  let maxGridItems = 26; // 數數圖示總數上限（小螢幕由 app 降到 12，換取大圖示）
+  // 數數圖示總數上限：超過 10 個就得把圖示縮小才排得下，變成考眼力而不是考數數
+  let maxGridItems = 10;
 
   function init(vocabData, situationsData, opts = {}) {
     vocab = vocabData;
@@ -189,6 +207,7 @@ const Gen = (() => {
     wordEQ: (cat, it) => `audio/word/${wordKey(cat, it)}-eq.mp3`, // Find the X!
     wordEW: (cat, it) => `audio/word/${wordKey(cat, it)}-ew.mp3`, // X（英文單念）
     count: (cat, it) => `audio/count/${wordKey(cat, it)}.mp3`,
+    countOrd: p => `audio/frag/ord-${p}.mp3`,   // 從左邊數過來，第 p 個是什麼？
     num: n => `audio/num/${n}.mp3`,
     frag: name => `audio/frag/${name}.mp3`,
     odd: cat => `audio/odd/${cat}.mp3`,
@@ -201,37 +220,142 @@ const Gen = (() => {
   const NOT_COUNTABLE = new Set(['grapes', 'cherry', 'fries', 'popcorn', 'noodles', 'rice', 'milk', 'sushi']);
   const countablePool = (cat, diff) => wordPool(cat, diff).filter(it => !NOT_COUNTABLE.has(it.en));
 
+  /** 依權重挑一種數數玩法（權重表裡沒有的就不會出現） */
+  function pickVariant(mix) {
+    const entries = COUNT_VARIANTS.filter(v => mix[v] > 0).map(v => [v, mix[v]]);
+    if (!entries.length) return 'single';
+    const total = entries.reduce((s, e) => s + e[1], 0);
+    let r = Math.random() * total;
+    for (const [v, w] of entries) { r -= w; if (r < 0) return v; }
+    return entries[entries.length - 1][0];
+  }
+
+  const ORD_ZH = ['', '一', '二', '三', '四', '五', '六'];
+
   function genCounting(diff, used) {
+    const variant = pickVariant(diff.countMix);
+    const cap = Math.min(diff.countMax, maxGridItems);
+
+    // 序數：一排各不相同的東西，問第幾個是什麼
+    if (variant === 'ordinal') {
+      const cat = pick(COUNT_CATS);
+      const pool = countablePool(cat, diff);
+      const len = Math.min(4 + rand(3), pool.length);
+      const row = sample(pool, len);
+      if (row.length < diff.options) return null;
+      const p = 1 + rand(row.length);
+      const target = row[p - 1];
+      const sig = `count:ord:${p}:${row.map(it => it.en).join(',')}`;
+      if (used.has(sig)) return null;
+      used.add(sig);
+      const others = sample(row.filter(it => it !== target), diff.options - 1);
+      return {
+        type: 'counting',
+        prompt: `從左邊數過來，第${ORD_ZH[p]}個是什麼？`,
+        speech: { text: `從左邊數過來，第${ORD_ZH[p]}個是什麼？`, lang: 'zh-TW' },
+        image: { kind: 'row', items: row.map(it => it.emoji) },
+        promptKey: sig, // 問句只有第幾個在變，真正的內容是那一排圖
+        options: shuffle([target, ...others].map(it => ({ kind: 'emoji', emoji: it.emoji, correct: it === target }))),
+        correctLabel: target.zh,
+        sig,
+        audioSeq: [A.countOrd(p)],
+        answerAudio: A.wordW(cat, target),
+        explanation: null,
+      };
+    }
+
+    // 哪一種最多：三～四種混排，每種都要數過才比得出來
+    if (variant === 'most') {
+      const cat = pick(COUNT_CATS);
+      const pool = countablePool(cat, diff);
+      const kinds = sample(pool, diff.options);
+      if (kinds.length < 3) return null;
+      // 最多的只比第二名多 1 個，逼小孩真的去數；總數不超過上限
+      const k = kinds.length;
+      const counts = [];
+      for (let i = 0; i < k; i++) counts.push(k - i);
+      const base = counts.reduce((a, b) => a + b, 0);
+      if (base > cap) return null;
+      const bump = rand(Math.floor((cap - base) / k) + 1); // 還有空間就整組往上加，數字不會每次一樣
+      for (let i = 0; i < k; i++) counts[i] += bump;
+      const target = kinds[0];
+      const sig = `count:most:${kinds.map((k, i) => k.en + counts[i]).join(',')}`;
+      if (used.has(sig)) return null;
+      used.add(sig);
+      const items = [];
+      kinds.forEach((k, i) => { for (let j = 0; j < counts[i]; j++) items.push(k.emoji); });
+      return {
+        type: 'counting',
+        prompt: '數一數，哪一種最多？',
+        speech: { text: '數一數，圖裡哪一種最多？', lang: 'zh-TW' },
+        image: { kind: 'mixedGrid', items: shuffle(items) },
+        promptKey: sig, // 問句固定，內容全在圖上
+        options: shuffle(kinds.map(k => ({ kind: 'emoji', emoji: k.emoji, correct: k === target }))),
+        correctLabel: target.zh,
+        sig,
+        audioSeq: [A.frag('count-most')],
+        answerAudio: A.wordW(cat, target),
+        explanation: null,
+      };
+    }
+
+    // 總共幾個：兩種混排，要跨類別加起來
+    if (variant === 'total') {
+      const cat = pick(COUNT_CATS);
+      const pool = countablePool(cat, diff);
+      const two = sample(pool, 2);
+      if (two.length < 2) return null;
+      const a = 2 + rand(Math.max(1, Math.min(5, cap - 3)));
+      const b = 2 + rand(Math.max(1, Math.min(5, cap - a - 1)));
+      const n = a + b;
+      if (n > cap) return null;
+      const sig = `count:total:${two[0].en}${a}:${two[1].en}${b}`;
+      if (used.has(sig)) return null;
+      used.add(sig);
+      const items = shuffle([...Array(a).fill(two[0].emoji), ...Array(b).fill(two[1].emoji)]);
+      return {
+        type: 'counting',
+        prompt: '數一數，總共有幾個？',
+        speech: { text: '數一數，圖裡總共有幾個？', lang: 'zh-TW' },
+        image: { kind: 'mixedGrid', items },
+        promptKey: sig, // 問句固定，內容全在圖上
+        options: numberOptions(n, diff.options, 2, cap + 2),
+        correctLabel: `${n}`,
+        sig,
+        audioSeq: [A.frag('count-total')],
+        answerAudio: A.num(n),
+        explanation: null,
+      };
+    }
+
+    // single / mixed：數一種東西，mixed 會混入另一種當干擾
     const cat = pick(COUNT_CATS);
     const pool = countablePool(cat, diff);
     const item = pick(pool);
-    const n = 1 + rand(Math.min(diff.countMax, maxGridItems));
-    const sig = `count:${item.en}:${n}`;
-    if (used.has(sig)) return null;
-    used.add(sig);
     const m = MEASURE[cat] || '個';
+    const wantMixed = variant === 'mixed';
+    const n = wantMixed
+      ? 2 + rand(Math.max(1, Math.min(6, cap - 2)))   // 留位置給干擾圖
+      : 1 + rand(cap);
+    const sig = `count:${wantMixed ? 'x:' : ''}${item.en}:${n}`;
+    if (used.has(sig)) return null;
 
-    // 高難度：混入別種圖示當干擾，小孩要從一堆裡只數目標物
     let image = { kind: 'grid', emoji: item.emoji, count: n };
-    const room = maxGridItems - n;
-    if (diff.mixedCount && n >= 3 && room >= 2 && Math.random() < diff.mixedCount) {
+    if (wantMixed) {
+      const room = cap - n;
       const other = pick(pool.filter(it => it !== item && it.emoji !== item.emoji));
-      if (other) {
-        const extra = Math.min(2 + rand(Math.min(6, n)), room);
-        image = {
-          kind: 'mixedGrid',
-          target: item.emoji,
-          items: shuffle([...Array(n).fill(item.emoji), ...Array(extra).fill(other.emoji)]),
-        };
-      }
+      if (!other || room < 2) return null;
+      const extra = 2 + rand(room - 1);
+      image = { kind: 'mixedGrid', items: shuffle([...Array(n).fill(item.emoji), ...Array(extra).fill(other.emoji)]) };
     }
+    used.add(sig);
 
     return {
       type: 'counting',
       prompt: `數一數，有幾${m}${item.zh}？`,
       speech: { text: `數一數，圖裡有幾${m}${item.zh}？`, lang: 'zh-TW' },
       image,
-      options: numberOptions(n, diff.options, 1, diff.countMax + 3),
+      options: numberOptions(n, diff.options, 1, cap + 3),
       correctLabel: `${n}`,
       sig,
       audioSeq: [A.count(cat, item)],
@@ -445,11 +569,15 @@ const Gen = (() => {
     // 同一輪不出現相同的問句：不同題目可能共用同一句話
     //（例：「哪一個不是動物？」選項不同、「數一數，有幾隻貓？」數量不同），
     // 對小孩來說那仍然是「又是這題」。
+    // 少數題型的問句本來就固定（「總共有幾個？」「哪一種最多？」），內容全在圖上，
+    // 這種會自帶 promptKey 改用圖的內容去比，只要求不連續出現同一句。
     const prompts = new Set();
+    const keyOf = q => q.promptKey || q.prompt;
 
     for (const type of seq) {
       let q = null;
       let dupPrompt = null; // 真的湊不出新問句時的備案，確保題數不會短少
+      const lastPrompt = questions.length ? questions[questions.length - 1].prompt : null;
       // 只在啟用的題型內出題；全部出完就清紀錄重來（例：只玩顏色但選 30 題）
       for (let pass = 0; pass < 2 && !q; pass++) {
         const candidates = [type, ...shuffle(enabled.filter(t => t !== type))];
@@ -457,7 +585,7 @@ const Gen = (() => {
           for (let attempt = 0; attempt < 12 && !q; attempt++) {
             const cand = GENERATORS[t](diff, used);
             if (!cand) continue;
-            if (prompts.has(cand.prompt)) { dupPrompt = dupPrompt || cand; continue; }
+            if (prompts.has(keyOf(cand)) || cand.prompt === lastPrompt) { dupPrompt = dupPrompt || cand; continue; }
             q = cand;
           }
           if (q) break;
@@ -465,7 +593,7 @@ const Gen = (() => {
         if (!q && pass === 0) clearTypeSigs(used, enabled);
       }
       q = q || dupPrompt;
-      if (q) { prompts.add(q.prompt); questions.push(q); }
+      if (q) { prompts.add(keyOf(q)); questions.push(q); }
     }
     return questions;
   }

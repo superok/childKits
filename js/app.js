@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v28';
+  const APP_VERSION = 'v29';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -497,11 +497,15 @@
     // 圖像區
     const imgEl = $('q-image');
     imgEl.innerHTML = '';
-    imgEl.classList.remove('many');
+    imgEl.classList.remove('many', 'one-row', 'scene');
     const img = question.image;
-    // 圖示很多時縮小尺寸，確保全部看得到（數數題不能有圖被裁掉）
-    const itemCount = img ? (img.kind === 'grid' ? img.count : img.kind === 'mixedGrid' ? img.items.length : 0) : 0;
-    if (itemCount > 12) imgEl.classList.add('many');
+    // 圖示 7 個以上才縮一級；上限 10 個，所以平常都是大圖示
+    const itemCount = img
+      ? (img.kind === 'grid' ? img.count : (img.kind === 'mixedGrid' || img.kind === 'row') ? img.items.length : 0)
+      : 0;
+    if (itemCount >= 7) imgEl.classList.add('many');
+    if (img && img.kind === 'row') imgEl.classList.add('one-row'); // 序數題要看得出前後順序，不能換行
+    if (img && img.kind === 'emoji') imgEl.classList.add('scene'); // 情境題的單張情境圖：矮螢幕時不跟數數圖搶空間
     if (img) {
       if (img.kind === 'emoji') {
         imgEl.textContent = img.value;
@@ -511,7 +515,7 @@
           s.textContent = img.emoji;
           imgEl.appendChild(s);
         }
-      } else if (img.kind === 'mixedGrid') {
+      } else if (img.kind === 'mixedGrid' || img.kind === 'row') {
         for (const e of img.items) {
           const s = document.createElement('span');
           s.textContent = e;
@@ -549,12 +553,34 @@
     });
 
     $('feedback').classList.add('hidden');
+    // 換題一定回到最上面：上一題捲下去過的話，新題目會從被捲掉的位置開始，題目就看不到了
+    const main = document.querySelector('.quiz-main');
+    if (main) main.scrollTop = 0;
 
     // 剛換題的短暫鎖定：避免按「下一題」的手指殘影誤觸同位置的選項
     optsEl.classList.add('locked');
     setTimeout(() => optsEl.classList.remove('locked'), 500);
 
     speakQuestion(question);
+  }
+
+  /** 把某個選項捲進可視範圍（回饋列出現後答題區會變矮，正確答案可能被推出去）。
+      用 offsetTop 而不是 getBoundingClientRect：答對的按鈕正在播放放大動畫，
+      量到的會是動畫中被縮放過的位置，捲的距離就會差一截。 */
+  function ensureVisible(el) {
+    scrollIntoMain(el);
+    if (window.requestAnimationFrame) requestAnimationFrame(() => scrollIntoMain(el));
+  }
+
+  function scrollIntoMain(el) {
+    const main = document.querySelector('.quiz-main');
+    if (!main || !el) return;
+    const view = main.clientHeight;
+    const top = el.offsetTop;              // quiz-main 是 position: relative，所以就是相對它的位置
+    const bottom = top + el.offsetHeight;
+    if (el.offsetHeight >= view) main.scrollTop = top;   // 比可視範圍還高：至少對齊頂端
+    else if (bottom > main.scrollTop + view) main.scrollTop = bottom - view + 10;
+    else if (top < main.scrollTop) main.scrollTop = Math.max(0, top - 10);
   }
 
   /* 量測選項在畫面上真正的排法，算出正確答案的位置。
@@ -648,6 +674,7 @@
     $('feedback-text').textContent = fbText;
     $('btn-next').textContent = session.pos + 1 >= session.queue.length ? '看成績 🏁' : '下一題 ▶';
     $('feedback').classList.remove('hidden');
+    ensureVisible(buttons[question.options.findIndex(o => o.correct)]);
     stopAllAudio();
     if (audioPaths) {
       AudioBank.playSeq(audioPaths).then(st => { if (st === 'failed') Speech.speak(speechText, 'zh-TW'); });
@@ -898,9 +925,7 @@
         fetch('data/situations.json').then(r => r.json()),
         AudioBank.init(), // 音檔清單載不到就全程用裝置 TTS
       ]);
-      // 手機（短邊 < 600px）限制數數圖示總數，讓每個圖示維持大尺寸
-      const isSmallDevice = Math.min(window.screen.width, window.screen.height) < 600;
-      Gen.init(vocab, situations, { maxGridItems: isSmallDevice ? 12 : 26 });
+      Gen.init(vocab, situations);
       applyRate();
     } catch (e) {
       $('screen-loading').querySelector('.loading-box').innerHTML =
