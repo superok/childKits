@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v27';
+  const APP_VERSION = 'v28';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -11,6 +11,31 @@
   const AVATARS = ['🦁','🐰','🐯','🐼','🐸','🐵','🦊','🐻','🐨','🐷','🦄','🐙','🦖','🐳','🚀','🌟','🍓','🎈','⚽','🎀','🤖','👑','🦋','🐥'];
   const COLORS = ['#e63946','#1d6fd6','#2a9d3f','#f4802c','#8144c4','#f27fb2','#00a8a8','#8b5a2b','#5b6ee1','#d4a017'];
   const PRAISES = ['答對了，你好棒！','太厲害了！','答對囉，繼續加油！','哇，好聰明！'];
+
+  /* 答錯時的位置提示：顏色、形狀、圖片這類選項沒有文字，
+     光唸「正確答案是紅色」對還不認得紅色的小孩沒有幫助，要再指出是哪一個。 */
+  const POS_TEXT = {
+    'left': '左邊那一個',
+    'mid': '中間那一個',
+    'right': '右邊那一個',
+    '1of4': '左邊數過來第一個',
+    '2of4': '左邊數過來第二個',
+    '3of4': '左邊數過來第三個',
+    '4of4': '左邊數過來第四個',
+    'top-left': '上面那一排，左邊那一個',
+    'top-mid': '上面那一排，中間那一個',
+    'top-right': '上面那一排，右邊那一個',
+    'top-only': '上面那一個',
+    'bottom-left': '下面那一排，左邊那一個',
+    'bottom-mid': '下面那一排，中間那一個',
+    'bottom-right': '下面那一排，右邊那一個',
+    'bottom-only': '下面那一個',
+    'down-1': '從上面數下來第一個',
+    'down-2': '從上面數下來第二個',
+    'down-3': '從上面數下來第三個',
+    'down-4': '從上面數下來第四個',
+  };
+  const NO_LABEL_KINDS = ['emoji', 'color', 'shape']; // 選項上沒有文字的題型
 
   let session = null;        // 進行中的一輪
   let versusSelection = [];  // 對戰模式選到的玩家 id（依點選順序）
@@ -532,6 +557,45 @@
     speakQuestion(question);
   }
 
+  /* 量測選項在畫面上真正的排法，算出正確答案的位置。
+     選項是 grid，會隨螢幕寬度變成一排、兩排或一直行，所以不能寫死「左邊第幾個」。 */
+  function positionKey(buttons, correctIdx) {
+    if (correctIdx < 0 || !buttons[correctIdx]) return null;
+    const rows = [];
+    buttons.forEach((b, i) => {
+      const r = b.getBoundingClientRect();
+      if (!r.width && !r.height) return;
+      const row = rows.find(rw => Math.abs(rw.top - r.top) < Math.max(r.height / 2, 8));
+      if (row) row.items.push({ i, left: r.left });
+      else rows.push({ top: r.top, items: [{ i, left: r.left }] });
+    });
+    rows.sort((a, b) => a.top - b.top);
+    rows.forEach(rw => rw.items.sort((a, b) => a.left - b.left));
+
+    const rowIdx = rows.findIndex(rw => rw.items.some(it => it.i === correctIdx));
+    if (rowIdx < 0) return null;
+    const items = rows[rowIdx].items;
+    const col = items.findIndex(it => it.i === correctIdx);
+
+    // 同一排裡的左右位置
+    const across = (c, n) => {
+      if (n === 2) return c === 0 ? 'left' : 'right';
+      if (n === 3) return ['left', 'mid', 'right'][c];
+      if (n === 4) return `${c + 1}of4`;
+      return null;
+    };
+
+    if (rows.length === 1) return across(col, items.length);
+    if (rows.every(rw => rw.items.length === 1)) return rowIdx < 4 ? `down-${rowIdx + 1}` : null;
+    if (rows.length === 2) {
+      const band = rowIdx === 0 ? 'top' : 'bottom';
+      if (items.length === 1) return `${band}-only`;
+      const a = across(col, items.length);
+      return a && POS_TEXT[`${band}-${a}`] ? `${band}-${a}` : null;
+    }
+    return null;
+  }
+
   /* ===== 作答 ===== */
   function answer(opt, btn) {
     const { playerIdx, question } = session.queue[session.pos];
@@ -562,11 +626,19 @@
       });
       Sfx.wrong();
       fbEmoji = '💪';
-      fbText = `正確答案是「${question.correctLabel}」`;
-      speechText = `答錯了喔，正確答案是，${question.correctLabel}。${question.explanation || ''}`;
+      // 選項沒有文字時（顏色、形狀、圖片），光說名字沒用，要指出是哪一個
+      const needPos = NO_LABEL_KINDS.indexOf(question.options[correctIdx].kind) >= 0;
+      const posKey = needPos ? positionKey(buttons, correctIdx) : null;
+      const posText = posKey ? POS_TEXT[posKey] : '';
+      fbText = posText
+        ? `正確答案是「${question.correctLabel}」👉 ${posText}`
+        : `正確答案是「${question.correctLabel}」`;
+      speechText = `答錯了喔，正確答案是，${posText ? posText + '，' : ''}${question.correctLabel}。${question.explanation || ''}`;
       $('feedback-explain').textContent = question.explanation || '';
       if (question.answerAudio && Speech.prefs().mode !== 'device') {
-        const paths = ['audio/common/wrong-intro.mp3', question.answerAudio];
+        const paths = ['audio/common/wrong-intro.mp3'];
+        if (posKey) paths.push(`audio/pos/pos-${posKey}.mp3`);
+        paths.push(question.answerAudio);
         if (question.explainAudio) paths.push(question.explainAudio);
         if (AudioBank.hasAll(paths)) audioPaths = paths;
       }
