@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v30';
+  const APP_VERSION = 'v31';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
