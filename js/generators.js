@@ -108,6 +108,12 @@ const Gen = (() => {
     return shuffle([...set]).map(n => ({ kind: 'number', label: String(n), correct: n === answer }));
   }
 
+  /**
+   * 形狀的 SVG。一律只用基本圖形、三次貝茲曲線（C）與描邊，
+   * 不用圓弧指令 A、也不用 fill-rule：
+   * 舊 WebKit（iOS 13）對「半徑太小要自動放大」的圓弧與多子路徑 evenodd 有瑕疵，
+   * 整條 path 會畫不出來，選項就變成一張空白卡片。
+   */
   function shapeSVG(kind, color) {
     const s = `fill="${color}"`;
     const shapes = {
@@ -124,11 +130,16 @@ const Gen = (() => {
       cross: `<polygon points="35,8 65,8 65,35 92,35 92,65 65,65 65,92 35,92 35,65 8,65 8,35 35,35" ${s}/>`,
       arrow: `<polygon points="8,38 55,38 55,14 94,50 55,86 55,62 8,62" ${s}/>`,
       trapezoid: `<polygon points="26,20 74,20 94,80 6,80" ${s}/>`,
-      semicircle: `<path d="M6 72 A 44 44 0 0 1 94 72 Z" ${s}/>`,
-      ring: `<path d="M50 8 A 42 42 0 1 1 49.9 8 Z M50 30 A 20 20 0 1 0 50.1 30 Z" fill-rule="evenodd" ${s}/>`,
-      crescent: `<path d="M62 8 A 42 42 0 1 0 62 92 A 34 34 0 1 1 62 8 Z" ${s}/>`,
+      // 半圓：兩段 1/4 圓的貝茲（控制點 0.5523 × r）
+      semicircle: `<path d="M6 72 C 6 47.7, 25.7 28, 50 28 C 74.3 28, 94 47.7, 94 72 Z" ${s}/>`,
+      // 圓環：用描邊畫，不挖洞（外徑 40、內徑 22）
+      ring: `<circle cx="50" cy="50" r="31" fill="none" stroke="${color}" stroke-width="18"/>`,
+      // 月亮：外緣半圓（圓心 62,50 r42）+ 內緣半橢圓（rx18 ry42），共四段貝茲
+      crescent: `<path d="M62 8 C 38.8 8, 20 26.8, 20 50 C 20 73.2, 38.8 92, 62 92 C 55.4 92, 50 73.2, 50 50 C 50 26.8, 55.4 8, 62 8 Z" ${s}/>`,
     };
-    return `<svg viewBox="0 0 100 100" aria-hidden="true">${shapes[kind] || shapes.circle}</svg>`;
+    // xmlns 是給「單獨當一張圖載入」時用的（app 啟動時的形狀自我檢查會這樣做），
+    // 內嵌在 HTML 裡不需要但也無害
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true">${shapes[kind] || shapes.circle}</svg>`;
   }
 
   /* ===== 各題型產生器（回傳 null 表示暫時出不了題，會換別的題型） ===== */
@@ -213,8 +224,16 @@ const Gen = (() => {
     odd: cat => `audio/odd/${cat}.mp3`,
   };
 
+  // 這台裝置畫不出來的形狀（由 app 的自我檢查填入），出題時排除
+  const brokenShapes = new Set();
+  function setBrokenShapes(list) {
+    brokenShapes.clear();
+    for (const k of list || []) brokenShapes.add(k);
+  }
+
   // 依難度取詞：進階詞（hard: true）只在高難度出現
-  const wordPool = (cat, diff) => vocab[cat].filter(it => diff.hardWords || !it.hard);
+  const wordPool = (cat, diff) => vocab[cat].filter(it =>
+    (diff.hardWords || !it.hard) && !(cat === 'shapes' && brokenShapes.has(it.svg)));
 
   // 這些詞的 emoji 一張圖就是一堆（一串葡萄、一把薯條、兩顆櫻桃），不能拿來數數
   const NOT_COUNTABLE = new Set(['grapes', 'cherry', 'fries', 'popcorn', 'noodles', 'rice', 'milk', 'sushi']);
@@ -598,5 +617,5 @@ const Gen = (() => {
     return questions;
   }
 
-  return { init, buildRound, DIFF, TYPE_INFO };
+  return { init, buildRound, DIFF, TYPE_INFO, shapeSVG, setBrokenShapes };
 })();

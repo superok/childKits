@@ -2,7 +2,7 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v31';
+  const APP_VERSION = 'v32';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
@@ -102,6 +102,46 @@
     syncViewportHeight();
     fitScreen();
     fitDialogs();
+  }
+
+  /**
+   * 形狀自我檢查：把每個形狀畫進一張小 canvas 數著色像素，畫不出來的就不拿來出題。
+   * 舊 WebKit 對某些 SVG 寫法會整個不畫，選項就變成一張空白卡片——小孩根本無從作答。
+   * 這裡不預設是哪一種瀏覽器 bug，直接看畫得出來畫不出來。
+   */
+  function checkShapes(shapes) {
+    if (!shapes || !shapes.length) return;
+    const probe = svg => new Promise(resolve => {
+      let done = false;
+      const finish = ok => { if (!done) { done = true; resolve(ok); } };
+      try {
+        const sized = svg.replace('<svg ', '<svg width="20" height="20" ');
+        const img = new Image();
+        img.onload = () => {
+          try {
+            const c = document.createElement('canvas');
+            c.width = c.height = 20;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0, 20, 20);
+            const d = ctx.getImageData(0, 0, 20, 20).data;
+            let painted = 0;
+            for (let i = 3; i < d.length; i += 4) if (d[i] > 20) painted++;
+            finish(painted / 400 > 0.03);
+          } catch (e) { finish(true); } // 讀不到像素就別擋（例如被隱私設定擋住）
+        };
+        img.onerror = () => finish(false);
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(sized);
+        setTimeout(() => finish(true), 3000); // 逾時視為正常，不因為檢查本身失敗而少題目
+      } catch (e) { finish(true); }
+    });
+
+    Promise.all(shapes.map(k => probe(Gen.shapeSVG(k, '#1d6fd6')).then(ok => ({ k, ok }))))
+      .then(results => {
+        const broken = results.filter(r => !r.ok).map(r => r.k);
+        // 過半都失敗代表是檢查機制本身有問題（canvas 被擋之類），寧可不啟用
+        if (broken.length && broken.length <= shapes.length / 2) Gen.setBrokenShapes(broken);
+      })
+      .catch(() => { /* 檢查失敗就維持原狀 */ });
   }
 
   /** 偵測 flex gap 支援（iOS 14.1 以前沒有），不支援就讓 CSS 改用 margin 排版 */
@@ -996,6 +1036,7 @@
         AudioBank.init(), // 音檔清單載不到就全程用裝置 TTS
       ]);
       Gen.init(vocab, situations);
+      checkShapes((vocab.shapes || []).map(sh => sh.svg));
       applyRate();
     } catch (e) {
       $('screen-loading').querySelector('.loading-box').innerHTML =
