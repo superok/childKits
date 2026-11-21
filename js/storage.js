@@ -26,7 +26,7 @@ const Store = (() => {
     try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) { /* 私密模式等 */ }
   }
 
-  const ALL_TYPES = ['cognition', 'colors', 'shapes', 'counting', 'arithmetic', 'english', 'oddone', 'situations'];
+  const ALL_TYPES = ['cognition', 'colors', 'shapes', 'counting', 'arithmetic', 'english', 'oddone', 'situations', 'zhuyin'];
 
   function defaultProfiles() {
     return [

@@ -2,11 +2,11 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v32';
+  const APP_VERSION = 'v33';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
-  const CAT_ICONS = { cognition: '🐶', colors: '🎨', shapes: '🔺', counting: '🔢', arithmetic: '➕', english: '🔤', oddone: '🔍', situations: '🚸' };
+  const CAT_ICONS = { cognition: '🐶', colors: '🎨', shapes: '🔺', counting: '🔢', arithmetic: '➕', english: '🔤', oddone: '🔍', situations: '🚸', zhuyin: 'ㄅ' };
 
   const AVATARS = ['🦁','🐰','🐯','🐼','🐸','🐵','🦊','🐻','🐨','🐷','🦄','🐙','🦖','🐳','🚀','🌟','🍓','🎈','⚽','🎀','🤖','👑','🦋','🐥'];
   const COLORS = ['#e63946','#1d6fd6','#2a9d3f','#f4802c','#8144c4','#f27fb2','#00a8a8','#8b5a2b','#5b6ee1','#d4a017'];
@@ -35,7 +35,8 @@
     'down-3': '從上面數下來第三個',
     'down-4': '從上面數下來第四個',
   };
-  const NO_LABEL_KINDS = ['emoji', 'color', 'shape']; // 選項上沒有文字的題型
+  // 選項上沒有文字的題型。注音符號雖然是字，但這題就是在考認不認得，也要指出位置
+  const NO_LABEL_KINDS = ['emoji', 'color', 'shape', 'zhuyin'];
 
   let session = null;        // 進行中的一輪
   let versusSelection = [];  // 對戰模式選到的玩家 id（依點選順序）
@@ -640,6 +641,7 @@
       else if (opt.kind === 'number') b.innerHTML = `<span class="opt-num">${opt.label}</span>`;
       else if (opt.kind === 'color') b.innerHTML = `<span class="opt-swatch" style="background:${opt.hex}"></span>`;
       else if (opt.kind === 'shape') b.innerHTML = opt.svg;
+      else if (opt.kind === 'zhuyin') b.innerHTML = `<span class="opt-zy">${opt.label}</span>`;
       else b.innerHTML = `<span class="opt-emoji">${opt.emoji}</span><span>${escapeHtml(opt.label)}</span>`;
       b.addEventListener('click', () => answer(opt, b));
       optsEl.appendChild(b);
@@ -752,13 +754,15 @@
       fbText = posText
         ? `正確答案是「${question.correctLabel}」👉 ${posText}`
         : `正確答案是「${question.correctLabel}」`;
-      speechText = `答錯了喔，正確答案是，${posText ? posText + '，' : ''}${question.correctLabel}。${question.explanation || ''}`;
+      // 注音符號交給裝置語音會唸錯（ㄈ 唸成 F），所以題目可以另外給要唸的文字
+      speechText = `答錯了喔，正確答案是，${posText ? posText + '，' : ''}${question.correctSpeech || question.correctLabel}。` +
+        (question.explanationSpeech || question.explanation || '');
       $('feedback-explain').textContent = question.explanation || '';
       if (question.answerAudio && Speech.prefs().mode !== 'device') {
         const paths = ['audio/common/wrong-intro.mp3'];
         if (posKey) paths.push(`audio/pos/pos-${posKey}.mp3`);
         paths.push(question.answerAudio);
-        if (question.explainAudio) paths.push(question.explainAudio);
+        if (question.explainAudio) paths.push(...[].concat(question.explainAudio)); // 可以是一段或拼接的多段
         if (AudioBank.hasAll(paths)) audioPaths = paths;
       }
     }
@@ -1030,12 +1034,13 @@
     if (window.navigator.standalone === false) $('home-hint-standalone').classList.remove('hidden');
     bindEvents();
     try {
-      const [vocab, situations] = await Promise.all([
+      const [vocab, situations, zhuyin] = await Promise.all([
         fetch('data/vocab.json').then(r => r.json()),
         fetch('data/situations.json').then(r => r.json()),
+        fetch('data/zhuyin.json').then(r => r.json()),
         AudioBank.init(), // 音檔清單載不到就全程用裝置 TTS
       ]);
-      Gen.init(vocab, situations);
+      Gen.init(vocab, situations, zhuyin);
       checkShapes((vocab.shapes || []).map(sh => sh.svg));
       applyRate();
     } catch (e) {

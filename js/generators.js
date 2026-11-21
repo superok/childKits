@@ -2,6 +2,7 @@
 const Gen = (() => {
   let vocab = null;
   let situationBank = null;
+  let zhuyin = null;
 
   /**
    * 難度分級：
@@ -11,19 +12,25 @@ const Gen = (() => {
    * - missing / threeTerm：加減題出「填空（3+?=8）」與「三個數連加」的機率
    * - hardWords：認知／英文題是否納入進階詞彙（vocab 裡標 hard 的詞）
    * - sitLevel2：情境題抽到進階題（level 2）的偏好機率（0 = 完全不出）
+   * - zyMix：注音題各種玩法的權重（sym = 聽音找符號、first = 看圖找第一個音）
+   * - zyConfuse：注音題的干擾選項改用易混淆符號（ㄅㄆ、ㄓㄗ、ㄣㄥ…）的機率
    *
    * 數數題刻意不用「數量變多」來加難度：圖示一多就得縮小，反而變成考眼力，
    * 排版也撐不下。上限固定 10 個，改用不同的數學玩法往上加深。
    */
   const DIFF = {
     1: { label: '簡單 🌱', options: 3, countMax: 5,  addMax: 8,  sub: false, missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0,
-         countMix: { single: 1 } },
+         countMix: { single: 1 },
+         zyMix: { sym: 1 }, zyConfuse: 0 },
     2: { label: '中等 🌿', options: 3, countMax: 8,  addMax: 10, sub: true,  missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0,
-         countMix: { single: 0.6, ordinal: 0.25, total: 0.15 } },
+         countMix: { single: 0.6, ordinal: 0.25, total: 0.15 },
+         zyMix: { sym: 0.5, first: 0.5 }, zyConfuse: 0.3 },
     3: { label: '挑戰 🌳', options: 4, countMax: 10, addMax: 20, sub: true,  missing: 0.25, threeTerm: 0.2, hardWords: true,  sitLevel2: 0.5,
-         countMix: { single: 0.3, mixed: 0.25, total: 0.15, most: 0.15, ordinal: 0.15 } },
+         countMix: { single: 0.3, mixed: 0.25, total: 0.15, most: 0.15, ordinal: 0.15 },
+         zyMix: { sym: 0.4, first: 0.6 }, zyConfuse: 0.6 },
     4: { label: '大師 🔥', options: 4, countMax: 10, addMax: 50, sub: true,  missing: 0.35, threeTerm: 0.3, hardWords: true,  sitLevel2: 0.75,
-         countMix: { single: 0.12, mixed: 0.25, total: 0.23, most: 0.23, ordinal: 0.17 } },
+         countMix: { single: 0.12, mixed: 0.25, total: 0.23, most: 0.23, ordinal: 0.17 },
+         zyMix: { sym: 0.4, first: 0.6 }, zyConfuse: 0.85 },
   };
 
   /**
@@ -57,6 +64,7 @@ const Gen = (() => {
     english:    { label: '🔤 英文單字' },
     oddone:     { label: '🔍 找不同類' },
     situations: { label: '🚸 生活情境' },
+    zhuyin:     { label: 'ㄅ 注音符號' },
   };
 
   const COG_CATS_PREF = ['animals', 'fruits', 'foods', 'vehicles', 'body', 'nature', 'household', 'clothes'];
@@ -67,16 +75,17 @@ const Gen = (() => {
   const SIG_PREFIX = {
     cognition: 'cog:', colors: 'color:', shapes: 'shape:',
     counting: 'count:', arithmetic: 'math:', english: 'en:', situations: 'sit:',
-    oddone: 'odd:',
+    oddone: 'odd:', zhuyin: 'zy:',
   };
 
   let cogCats = [];
   // 數數圖示總數上限：超過 10 個就得把圖示縮小才排得下，變成考眼力而不是考數數
   let maxGridItems = 10;
 
-  function init(vocabData, situationsData, opts = {}) {
+  function init(vocabData, situationsData, zhuyinData, opts = {}) {
     vocab = vocabData;
     situationBank = situationsData;
+    zhuyin = zhuyinData;
     if (opts.maxGridItems) maxGridItems = opts.maxGridItems;
     // 詞彙庫實際有的類別才拿來出題（類別要夠 4 個詞才夠出干擾項）
     cogCats = COG_CATS_PREF.filter(c => Array.isArray(vocab[c]) && vocab[c].length >= 4);
@@ -222,6 +231,7 @@ const Gen = (() => {
     num: n => `audio/num/${n}.mp3`,
     frag: name => `audio/frag/${name}.mp3`,
     odd: cat => `audio/odd/${cat}.mp3`,
+    zy: name => `audio/zhuyin/${name}.mp3`,
   };
 
   // 這台裝置畫不出來的形狀（由 app 的自我檢查填入），出題時排除
@@ -239,10 +249,10 @@ const Gen = (() => {
   const NOT_COUNTABLE = new Set(['grapes', 'cherry', 'fries', 'popcorn', 'noodles', 'rice', 'milk', 'sushi']);
   const countablePool = (cat, diff) => wordPool(cat, diff).filter(it => !NOT_COUNTABLE.has(it.en));
 
-  /** 依權重挑一種數數玩法（權重表裡沒有的就不會出現） */
-  function pickVariant(mix) {
-    const entries = COUNT_VARIANTS.filter(v => mix[v] > 0).map(v => [v, mix[v]]);
-    if (!entries.length) return 'single';
+  /** 依權重挑一種玩法（權重表裡沒有的就不會出現） */
+  function pickVariant(mix, variants = COUNT_VARIANTS) {
+    const entries = variants.filter(v => mix[v] > 0).map(v => [v, mix[v]]);
+    if (!entries.length) return variants[0];
     const total = entries.reduce((s, e) => s + e[1], 0);
     let r = Math.random() * total;
     for (const [v, w] of entries) { r -= w; if (r < 0) return v; }
@@ -548,6 +558,114 @@ const Gen = (() => {
     };
   }
 
+  /**
+   * 注音符號題的兩種玩法：
+   * - sym  ：聽音找符號（語音唸「ㄅ」，選出 ㄅ）
+   * - first：看圖找第一個音（🐶「狗的第一個注音」→ ㄍ），用詞彙庫裡標了 zy 的詞
+   */
+  const ZY_VARIANTS = ['sym', 'first'];
+
+  /** 注音干擾項：高難度時優先挑跟答案容易搞混的符號，不夠再隨機補 */
+  function zhuyinDistractors(target, diff) {
+    const n = diff.options - 1;
+    const others = zhuyin.symbols.filter(s => s !== target);
+    let picked = [];
+    if (Math.random() < diff.zyConfuse) {
+      const near = new Set();
+      for (const group of zhuyin.confusable) {
+        if (group.includes(target.key)) group.forEach(k => near.add(k));
+      }
+      picked = sample(others.filter(s => near.has(s.key)), n);
+    }
+    const rest = others.filter(s => !picked.includes(s));
+    return picked.concat(sample(rest, n - picked.length));
+  }
+
+  const zhuyinOptions = (target, diff) => shuffle([target, ...zhuyinDistractors(target, diff)])
+    .map(s => ({ kind: 'zhuyin', label: s.sym, correct: s === target }));
+
+  /** 答錯時的例詞說明：「ㄅ 是「爸爸」的 ㄅ」或「「葉子」裡面有 ㄝ」 */
+  function zhuyinExample(s) {
+    const text = s.exType === 'in' ? `「${s.example}」裡面有 ${s.sym}` : `${s.sym} 是「${s.example}」的 ${s.sym}`;
+    const spoken = s.exType === 'in' ? `${s.example}裡面有${s.speak}` : `${s.example}的${s.speak}`;
+    return { text, spoken, audio: [A.zy(`ex-${s.key}`), A.zy(`sym-${s.key}`)] };
+  }
+
+  function genZhuyin(diff, used) {
+    if (!zhuyin) return null;
+    return pickVariant(diff.zyMix, ZY_VARIANTS) === 'first'
+      ? (genZhuyinFirst(diff, used) || genZhuyinSym(diff, used))
+      : genZhuyinSym(diff, used);
+  }
+
+  /** 聽音找符號。題目文字不能寫出符號本身（不然照著形狀找就答對了），只用語音出題 */
+  function genZhuyinSym(diff, used) {
+    let fresh = zhuyin.symbols.filter(s => !used.has(`zy:s:${s.key}`));
+    // 符號只有 37 個，比詞少很多：出完了就自己放掉舊的，不然要等到詞也全部出完才會清紀錄，
+    // 中間只剩看圖題。只放掉比較早出的一半（Set 照加入順序），剛出過的不會馬上又出
+    if (!fresh.length) {
+      const old = [...used].filter(k => k.startsWith('zy:s:'));
+      old.slice(0, Math.ceil(old.length / 2)).forEach(k => used.delete(k));
+      fresh = zhuyin.symbols.filter(s => !used.has(`zy:s:${s.key}`));
+    }
+    const target = pick(fresh);
+    used.add(`zy:s:${target.key}`);
+    const ex = zhuyinExample(target);
+    // 兩種問法輪流用：同一輪問句不能連續一樣，只有一種問法時連出兩題聽音題會被擋掉
+    const where = Math.random() < 0.5;
+    return {
+      type: 'zhuyin',
+      prompt: where ? '🔊 這個音在哪裡？' : '🔊 哪一個是這個音？',
+      promptKey: `zy:s:${target.key}`,
+      speech: { text: where ? `${target.speak}，在哪裡？` : `哪一個是，${target.speak}？`, lang: 'zh-TW' },
+      image: null,
+      options: zhuyinOptions(target, diff),
+      correctLabel: target.sym,
+      correctSpeech: target.speak,
+      sig: `zy:s:${target.key}`,
+      audioSeq: where
+        ? [A.zy(`sym-${target.key}`), A.zy('q-where')]
+        : [A.zy('q-which'), A.zy(`sym-${target.key}`)],
+      answerAudio: A.zy(`sym-${target.key}`),
+      explainAudio: ex.audio,
+      explanation: ex.text,
+      explanationSpeech: ex.spoken,
+    };
+  }
+
+  /** 看圖找第一個音。先抽符號再抽詞，不然 ㄕ 開頭的詞特別多（獅子、手、書…）會一直出 ㄕ */
+  function genZhuyinFirst(diff, used) {
+    const bySym = new Map();
+    for (const cat of cogCats) {
+      for (const it of wordPool(cat, diff)) {
+        if (!it.zy || used.has(`zy:w:${cat}:${it.en}`)) continue;
+        const s = zhuyin.symbols.find(z => z.sym === it.zy[0]);
+        if (!s) continue;
+        if (!bySym.has(s)) bySym.set(s, []);
+        bySym.get(s).push({ cat, it });
+      }
+    }
+    if (!bySym.size) return null;
+    const target = pick([...bySym.keys()]);
+    const { cat, it } = pick(bySym.get(target));
+    used.add(`zy:w:${cat}:${it.en}`);
+    return {
+      type: 'zhuyin',
+      prompt: `「${it.zh}」的第一個注音是哪一個？`,
+      speech: { text: `${it.zh}的第一個注音，是哪一個？`, lang: 'zh-TW' },
+      image: { kind: 'emoji', value: it.emoji },
+      options: zhuyinOptions(target, diff),
+      correctLabel: target.sym,
+      correctSpeech: target.speak,
+      sig: `zy:w:${cat}:${it.en}`,
+      audioSeq: [A.wordW(cat, it), A.zy('q-first')],
+      answerAudio: A.zy(`sym-${target.key}`),
+      explainAudio: [A.wordW(cat, it), A.zy('first-is'), A.zy(`sym-${target.key}`)],
+      explanation: `${it.zh} ${it.zy}，第一個音是 ${target.sym}`,
+      explanationSpeech: `${it.zh}的第一個音是${target.speak}`,
+    };
+  }
+
   const GENERATORS = {
     cognition: genCognition,
     colors: genColors,
@@ -557,6 +675,7 @@ const Gen = (() => {
     english: genEnglish,
     oddone: genOddOne,
     situations: genSituation,
+    zhuyin: genZhuyin,
   };
 
   /** 清掉指定題型的出題紀錄（題庫出完時讓題目可以重複再出） */

@@ -1,5 +1,5 @@
 /* 離線快取：安裝時預快取所有資源，之後網路優先、離線退回快取 */
-const CACHE = 'quizkids-v32';
+const CACHE = 'quizkids-v33';
 const ASSETS = [
   './',
   './index.html',
@@ -10,6 +10,7 @@ const ASSETS = [
   './js/app.js',
   './data/vocab.json',
   './data/situations.json',
+  './data/zhuyin.json',
   './manifest.webmanifest',
   './icons/icon.svg',
   './icons/apple-touch-icon.png',
