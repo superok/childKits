@@ -5,6 +5,7 @@ const Store = (() => {
     scores: 'quizkids.scores.v1',
     battles: 'quizkids.battles.v1',
     seen: 'quizkids.seen.v1',
+    knownTypes: 'quizkids.knownTypes.v1',
   };
 
   // 每位玩家記得最近出過的題目，避免連續幾輪一直遇到同樣的題
@@ -27,6 +28,8 @@ const Store = (() => {
   }
 
   const ALL_TYPES = ['cognition', 'colors', 'shapes', 'counting', 'arithmetic', 'english', 'oddone', 'situations', 'zhuyin'];
+  // 開始記錄 knownTypes 之前（v32 以前）就有的題型
+  const TYPES_BEFORE_TRACKING = ['cognition', 'colors', 'shapes', 'counting', 'arithmetic', 'english', 'oddone', 'situations'];
 
   function defaultProfiles() {
     return [
@@ -41,7 +44,23 @@ const Store = (() => {
       list = defaultProfiles();
       set(KEYS.profiles, list);
     }
+    addNewTypes(list);
     return list;
+  }
+
+  /**
+   * 改版新增的題型自動幫現有玩家勾上，不然只能一個一個進設定勾。
+   * 每個題型只加這一次：記下已經見過哪些題型，家長之後取消勾選就不會被加回去。
+   */
+  function addNewTypes(list) {
+    const known = get(KEYS.knownTypes, TYPES_BEFORE_TRACKING);
+    const added = ALL_TYPES.filter(t => !known.includes(t));
+    if (!added.length) return;
+    for (const p of list) {
+      p.types = (p.types || []).concat(added.filter(t => !(p.types || []).includes(t)));
+    }
+    set(KEYS.profiles, list);
+    set(KEYS.knownTypes, ALL_TYPES.slice());
   }
 
   function saveProfiles(list) { set(KEYS.profiles, list); }
