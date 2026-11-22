@@ -14,6 +14,7 @@ const Gen = (() => {
    * - sitLevel2：情境題抽到進階題（level 2）的偏好機率（0 = 完全不出）
    * - zyMix：注音題各種玩法的權重（sym = 聽音找符號、first = 看圖找第一個音）
    * - zyConfuse：注音題的干擾選項改用易混淆符號（ㄅㄆ、ㄓㄗ、ㄣㄥ…）的機率
+   * - timesTables / timesMissing：九九乘法出哪幾段（被乘數），與出「3 × ? = 12」填空的機率
    *
    * 數數題刻意不用「數量變多」來加難度：圖示一多就得縮小，反而變成考眼力，
    * 排版也撐不下。上限固定 10 個，改用不同的數學玩法往上加深。
@@ -21,16 +22,20 @@ const Gen = (() => {
   const DIFF = {
     1: { label: '簡單 🌱', options: 3, countMax: 5,  addMax: 8,  sub: false, missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0,
          countMix: { single: 1 },
-         zyMix: { sym: 1 }, zyConfuse: 0 },
+         zyMix: { sym: 1 }, zyConfuse: 0,
+         timesTables: [2, 5], timesMissing: 0 },
     2: { label: '中等 🌿', options: 3, countMax: 8,  addMax: 10, sub: true,  missing: 0,    threeTerm: 0,   hardWords: false, sitLevel2: 0,
          countMix: { single: 0.6, ordinal: 0.25, total: 0.15 },
-         zyMix: { sym: 0.5, first: 0.5 }, zyConfuse: 0.3 },
+         zyMix: { sym: 0.5, first: 0.5 }, zyConfuse: 0.3,
+         timesTables: [2, 3, 4, 5], timesMissing: 0 },
     3: { label: '挑戰 🌳', options: 4, countMax: 10, addMax: 20, sub: true,  missing: 0.25, threeTerm: 0.2, hardWords: true,  sitLevel2: 0.5,
          countMix: { single: 0.3, mixed: 0.25, total: 0.15, most: 0.15, ordinal: 0.15 },
-         zyMix: { sym: 0.4, first: 0.6 }, zyConfuse: 0.6 },
+         zyMix: { sym: 0.4, first: 0.6 }, zyConfuse: 0.6,
+         timesTables: [2, 3, 4, 5, 6, 7, 8, 9], timesMissing: 0.2 },
     4: { label: '大師 🔥', options: 4, countMax: 10, addMax: 50, sub: true,  missing: 0.35, threeTerm: 0.3, hardWords: true,  sitLevel2: 0.75,
          countMix: { single: 0.12, mixed: 0.25, total: 0.23, most: 0.23, ordinal: 0.17 },
-         zyMix: { sym: 0.4, first: 0.6 }, zyConfuse: 0.85 },
+         zyMix: { sym: 0.4, first: 0.6 }, zyConfuse: 0.85,
+         timesTables: [2, 3, 4, 5, 6, 7, 8, 9], timesMissing: 0.35 },
   };
 
   /**
@@ -65,6 +70,7 @@ const Gen = (() => {
     oddone:     { label: '🔍 找不同類' },
     situations: { label: '🚸 生活情境' },
     zhuyin:     { label: 'ㄅ 注音符號' },
+    times:      { label: '✖️ 九九乘法' },
   };
 
   const COG_CATS_PREF = ['animals', 'fruits', 'foods', 'vehicles', 'body', 'nature', 'household', 'clothes'];
@@ -75,7 +81,7 @@ const Gen = (() => {
   const SIG_PREFIX = {
     cognition: 'cog:', colors: 'color:', shapes: 'shape:',
     counting: 'count:', arithmetic: 'math:', english: 'en:', situations: 'sit:',
-    oddone: 'odd:', zhuyin: 'zy:',
+    oddone: 'odd:', zhuyin: 'zy:', times: 'times:',
   };
 
   let cogCats = [];
@@ -232,6 +238,7 @@ const Gen = (() => {
     frag: name => `audio/frag/${name}.mp3`,
     odd: cat => `audio/odd/${cat}.mp3`,
     zy: name => `audio/zhuyin/${name}.mp3`,
+    timesEx: (a, b) => `audio/times/ex-${a}x${b}.mp3`,
   };
 
   // 這台裝置畫不出來的形狀（由 app 的自我檢查填入），出題時排除
@@ -611,20 +618,21 @@ const Gen = (() => {
     const target = pick(fresh);
     used.add(`zy:s:${target.key}`);
     const ex = zhuyinExample(target);
-    // 兩種問法輪流用：同一輪問句不能連續一樣，只有一種問法時連出兩題聽音題會被擋掉
+    // 兩種問法輪流用：同一輪問句不能連續一樣，只有一種問法時連出兩題聽音題會被擋掉。
+    // 符號一定要接在一段話後面，不能當開頭：一開口就是很短的單音，小孩來不及聽清楚
     const where = Math.random() < 0.5;
     return {
       type: 'zhuyin',
-      prompt: where ? '🔊 這個音在哪裡？' : '🔊 哪一個是這個音？',
+      prompt: where ? '🔊 找一找，這個音在哪裡？' : '🔊 哪一個是這個音？',
       promptKey: `zy:s:${target.key}`,
-      speech: { text: where ? `${target.speak}，在哪裡？` : `哪一個是，${target.speak}？`, lang: 'zh-TW' },
+      speech: { text: where ? `找一找，${target.speak}，在哪裡？` : `哪一個是，${target.speak}？`, lang: 'zh-TW' },
       image: null,
       options: zhuyinOptions(target, diff),
       correctLabel: target.sym,
       correctSpeech: target.speak,
       sig: `zy:s:${target.key}`,
       audioSeq: where
-        ? [A.zy(`sym-${target.key}`), A.zy('q-where')]
+        ? [A.zy('q-find'), A.zy(`sym-${target.key}`), A.zy('q-where')]
         : [A.zy('q-which'), A.zy(`sym-${target.key}`)],
       answerAudio: A.zy(`sym-${target.key}`),
       explainAudio: ex.audio,
@@ -666,6 +674,54 @@ const Gen = (() => {
     };
   }
 
+  /**
+   * 九九乘法：「3 × 4 = ?」，高難度加上填空「3 × ? = 12」。
+   * 台灣課本 a × b 是「b 個 a」（3 × 4 = 3+3+3+3），答錯時就這樣說明。
+   */
+  function genTimes(diff, used) {
+    const a = pick(diff.timesTables);
+    const b = 1 + rand(9);
+    const missing = Math.random() < diff.timesMissing;
+    const sig = missing ? `times:m:${a}x${b}` : `times:${a}x${b}`;
+    if (used.has(sig)) return null;
+    used.add(sig);
+    const product = a * b;
+    const answer = missing ? b : product;
+    return {
+      type: 'times',
+      prompt: missing ? `${a} × ? = ${product}` : `${a} × ${b} = ?`,
+      speech: { text: missing ? `${a}，乘以多少，會等於${product}？` : `${a}，乘以${b}，等於多少？`, lang: 'zh-TW' },
+      image: null,
+      options: missing ? numberOptions(answer, diff.options, 1, 9) : timesOptions(a, b, diff.options),
+      correctLabel: `${answer}`,
+      sig,
+      audioSeq: missing
+        ? [A.num(a), A.frag('times-what-equals'), A.num(product)]
+        : [A.num(a), A.frag('times'), A.num(b), A.frag('equals-what')],
+      answerAudio: A.num(answer),
+      explainAudio: A.timesEx(a, b),
+      explanation: `${a} × ${b} 就是 ${b} 個 ${a}，等於 ${product}`,
+      explanationSpeech: `${b}個${a}，是${product}`,
+    };
+  }
+
+  /**
+   * 乘法的干擾項用常見的算錯：差一段（3×5、3×3）、看錯被乘數（4×4、2×4）、
+   * 當成加法（3+4），不夠再用答案附近的數字補
+   */
+  function timesOptions(a, b, total) {
+    const answer = a * b;
+    const near = [a * (b + 1), a * (b - 1), (a + 1) * b, (a - 1) * b, a + b]
+      .filter(n => n > 0 && n !== answer);
+    const picked = sample([...new Set(near)], total - 1);
+    for (let d = 1; picked.length < total - 1; d++) {
+      for (const n of [answer + d, answer - d]) {
+        if (n > 0 && n !== answer && !picked.includes(n) && picked.length < total - 1) picked.push(n);
+      }
+    }
+    return shuffle([answer, ...picked]).map(n => ({ kind: 'number', label: String(n), correct: n === answer }));
+  }
+
   const GENERATORS = {
     cognition: genCognition,
     colors: genColors,
@@ -676,6 +732,7 @@ const Gen = (() => {
     oddone: genOddOne,
     situations: genSituation,
     zhuyin: genZhuyin,
+    times: genTimes,
   };
 
   /** 清掉指定題型的出題紀錄（題庫出完時讓題目可以重複再出） */

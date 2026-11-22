@@ -2,11 +2,11 @@
 (() => {
   const $ = id => document.getElementById(id);
 
-  const APP_VERSION = 'v34';
+  const APP_VERSION = 'v35';
 
   const SOLO_COUNTS = [10, 20, 30];
   const VS_COUNTS = [5, 10, 15]; // 對戰為「每人題數」
-  const CAT_ICONS = { cognition: '🐶', colors: '🎨', shapes: '🔺', counting: '🔢', arithmetic: '➕', english: '🔤', oddone: '🔍', situations: '🚸', zhuyin: 'ㄅ' };
+  const CAT_ICONS = { cognition: '🐶', colors: '🎨', shapes: '🔺', counting: '🔢', arithmetic: '➕', english: '🔤', oddone: '🔍', situations: '🚸', zhuyin: 'ㄅ', times: '✖️' };
 
   const AVATARS = ['🦁','🐰','🐯','🐼','🐸','🐵','🦊','🐻','🐨','🐷','🦄','🐙','🦖','🐳','🚀','🌟','🍓','🎈','⚽','🎀','🤖','👑','🦋','🐥'];
   const COLORS = ['#e63946','#1d6fd6','#2a9d3f','#f4802c','#8144c4','#f27fb2','#00a8a8','#8b5a2b','#5b6ee1','#d4a017'];
